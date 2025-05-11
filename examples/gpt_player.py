@@ -14,6 +14,7 @@ from poke_env.environment.move import Move
 from typing import List, Union
 import json
 import agentops
+from agentops.sdk.decorators import agent
 import asyncio
 agentops.init()
 client = openai.OpenAI()
@@ -145,6 +146,7 @@ Finally, write a conclusion that includes the move you will make, and the reason
     return prompt
 
 
+@agent
 class GPTPlayer(Player):
 
     def __init__(self, model: str = "gpt-4.1"):
