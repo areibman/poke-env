@@ -1,5 +1,7 @@
 # # `PokeAgent` LLM reasoning agents
 #
+# This example uses OpenAI's o3 and o4-mini reasoning models through the Responses API.
+# These models excel at complex problem solving and multi-step reasoning.
 #
 # **Note**: this notebooks requires a locally running Pokémon Showdown server. Please see the [getting started section](../getting_started.rst) for help on how to set one up.
 #
@@ -149,12 +151,12 @@ Finally, write a conclusion that includes the move you will make, and the reason
 @agent
 class GPTPlayer(Player):
 
-    def __init__(self, model: str = "gpt-4.1"):
+    def __init__(self, model: str = "o3"):
         super().__init__()
         self.model = model
-        if self.model == "gpt-4.1":
+        if self.model == "o3":
             self.color = LIGHT_BLUE
-        elif self.model == "gpt-4o":
+        elif self.model == "o4-mini":
             self.color = LIGHT_RED
         else:
             self.color = RESET_COLOR  # Default or no color
@@ -201,34 +203,36 @@ class GPTPlayer(Player):
                 battle.available_moves
             )
 
-            # print('Calling GPT...')
-            reasoning_response = client.responses.create(
+            # Combined reasoning and tool selection in one call for o3/o4 models
+            response = client.responses.create(
                 model=self.model,
                 input=[{"role": "system", "content": system_prompt},
-                       {"role": "user", "content": f"Select a move based on the move id (the name of the move) {battle.available_moves}"},]
-                # tools=tools,
-                # tool_choice="required"
-            )
-
-            print(
-                f'{self.color}Reasoning response: {reasoning_response.output[0].content[0].text}{RESET_COLOR}')
-
-            tool_selection_response = client.responses.create(
-                model="gpt-4.1",
-                input=f"Select a move based on the move id (the name of the move) {battle.available_moves}",
+                       {"role": "user", "content": f"Select a move based on the move id (the name of the move) {battle.available_moves}"},],
                 tools=tools,
-                tool_choice="required",
-                previous_response_id=reasoning_response.id
+                tool_choice="required"
             )
 
-            # print('GPT called')
-            tool_call = tool_selection_response.output[0]
-            # print(tool_call)
-            args = json.loads(tool_call.arguments)
-            # print('Args: ', args)
-            print(f'{self.color}Available moves: {battle.available_moves}{RESET_COLOR}')
-            chosen_order = choose_order_from_id(args["move_id"], battle)
-            print(f'{self.color}Chosen order: {chosen_order}{RESET_COLOR}')
+            # Handle the response structure for o3/o4 models
+            # The output might contain reasoning items and function calls
+            tool_call = None
+            for output_item in response.output:
+                if output_item.type == 'function_call':
+                    tool_call = output_item
+                    break
+                elif output_item.type == 'message' and hasattr(output_item, 'content'):
+                    # This is the actual message content
+                    for content in output_item.content:
+                        if hasattr(content, 'text'):
+                            print(f'{self.color}Response: {content.text}{RESET_COLOR}')
+
+            if tool_call:
+                args = json.loads(tool_call.arguments)
+                print(f'{self.color}Available moves: {battle.available_moves}{RESET_COLOR}')
+                chosen_order = choose_order_from_id(args["move_id"], battle)
+                print(f'{self.color}Chosen order: {chosen_order}{RESET_COLOR}')
+            else:
+                print(f'{self.color}No tool call found, choosing first available move{RESET_COLOR}')
+                chosen_order = battle.available_moves[0]
 
             # Iterating over available moves to find the one with the highest base power
             # best_move = max(battle.available_moves, key=lambda move: move.base_power)
@@ -265,14 +269,14 @@ class MaxDamagePlayer(Player):
 # Creating players
 random_player = RandomPlayer()
 max_damage_player = MaxDamagePlayer()
-gpt_player = GPTPlayer(model="gpt-4.1")
-gpt_player_o4 = GPTPlayer(model="gpt-4o")
+gpt_player = GPTPlayer(model="o3")
+gpt_player_o4_mini = GPTPlayer(model="o4-mini")
 
 
 async def main():
     # Running battles
     # await gpt_player.battle_against(max_damage_player, n_battles=3)
-    await gpt_player.battle_against(gpt_player_o4, n_battles=3)
+    await gpt_player.battle_against(gpt_player_o4_mini, n_battles=3)
 
     # Displaying results
     print(
