@@ -31,8 +31,10 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+    "agentops>=0.4.18",
     "gymnasium>=1.0.0",
     "numpy>=2.0.2",
+    "litellm>=1.74.0",
     "orjson>=3.10.15",
     "pettingzoo>=1.24.3",
     "requests>=2.32.3",

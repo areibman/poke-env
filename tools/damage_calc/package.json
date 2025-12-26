@@ -1,0 +1,9 @@
+{
+  "name": "poke-env-damage-calc",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.2.18",
+  "dependencies": {
+    "@smogon/calc": "^0.10.0"
+  }
+}

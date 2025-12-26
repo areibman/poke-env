@@ -113,3 +113,26 @@ venv.bak/
 
 # PyCharm
 .idea/
+
+# Node dependencies (damage calc helper)
+tools/damage_calc/node_modules/
+
+battle_logs/
+
+node_modules/
+web/node_modules/
+
+# Pokebench web app
+apps/web/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+apps/web/.tanstack/
+apps/web/.next/
+apps/web/dist/
+apps/web/build/
+apps/web/.turbo/
+apps/web/.vite/
+apps/web/public/data/*
+apps/web/public/replays/*
+!apps/web/public/replays/sample-replay.html

@@ -4,4 +4,5 @@ include src/poke_env/data/static/*.html
 include src/poke_env/data/static/moves/*.json
 include src/poke_env/data/static/pokedex/*.json
 include src/poke_env/data/static/typechart/*.json
+include src/poke_env/data/static/randbats/*.json
 include src/poke_env/py.typed

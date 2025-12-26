@@ -54,7 +54,7 @@ You can use [smogon's server](https://play.pokemonshowdown.com/) to try out your
 ```
 git clone https://github.com/smogon/pokemon-showdown.git
 cd pokemon-showdown
-npm install
+bun install
 cp config/config-example.js config/config.js
 node pokemon-showdown start --no-security
 ```

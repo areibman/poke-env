@@ -245,21 +245,27 @@ class PSClient:
         :param split_message: Message received from the server that triggers logging in.
         :type split_message: List[str]
         """
-        if self.account_configuration.password:
+        assertion = ""
+        password = self.account_configuration.password or "0"
+        try:
             log_in_request = requests.post(
                 self.server_configuration.authentication_url,
                 data={
                     "act": "login",
                     "name": self.account_configuration.username,
-                    "pass": self.account_configuration.password,
+                    "pass": password,
                     "challstr": split_message[2] + "%7C" + split_message[3],
                 },
             )
             self.logger.info("Sending authentication request")
-            assertion = json.loads(log_in_request.text[1:])["assertion"]
-        else:
-            self.logger.info("Bypassing authentication request")
-            assertion = ""
+            assertion = json.loads(log_in_request.text[1:]).get("assertion", "")
+            if not assertion:
+                self.logger.warning(
+                    "Loginserver returned empty assertion: %s",
+                    log_in_request.text[:200],
+                )
+        except Exception as exc:
+            self.logger.warning("Authentication request failed: %s", exc)
 
         await self.send_message(f"/trn {self.username},0,{assertion}")
 
