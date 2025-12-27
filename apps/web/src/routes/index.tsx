@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   Badge,
-  BarChart,
   Button,
   Card,
   Divider,
@@ -51,8 +50,40 @@ const badgeTextClassName = 'text-slate-900 dark:text-slate-100'
 const slateBadgeClassName =
   '!bg-slate-200 !bg-opacity-100 !text-slate-900 !ring-slate-300 dark:!bg-slate-800 dark:!bg-opacity-100 dark:!text-slate-100 dark:!ring-slate-700'
 
-const toSpriteId = (name: string) =>
-  name.toLowerCase().replace(/[^a-z0-9-]/g, '')
+// Pokemon form suffixes that should preserve the hyphen in sprite URLs
+const FORM_SUFFIXES = new Set([
+  'wellspring', 'hearthflame', 'cornerstone', 'teal', // Ogerpon
+  'therian', 'incarnate', // Forces of Nature
+  'hisui', 'alola', 'galar', 'paldea', // Regional forms
+  'origin', 'altered', // Giratina, Dialga, Palkia
+  'primal', // Kyogre, Groudon
+  'mega', 'megax', 'megay', // Mega evolutions
+  'gmax', // Gigantamax
+  'crowned', // Zacian, Zamazenta
+  'rapidstrike', 'singlestrike', // Urshifu
+  'dusk', 'midnight', // Lycanroc
+  'lowkey', 'amped', // Toxtricity
+  'bloodmoon', // Ursaluna
+])
+
+const toSpriteId = (name: string) => {
+  const lower = name.toLowerCase()
+  const hyphenIndex = lower.lastIndexOf('-')
+
+  if (hyphenIndex > 0) {
+    const suffix = lower.slice(hyphenIndex + 1).replace(/[^a-z]/g, '')
+    if (FORM_SUFFIXES.has(suffix)) {
+      // Keep hyphen for form variants (e.g., Landorus-Therian → landorus-therian)
+      const base = lower.slice(0, hyphenIndex).replace(/[^a-z0-9]/g, '')
+      return `${base}-${suffix}`
+    }
+  }
+
+  // Remove all non-alphanumeric for regular Pokemon and names with hyphens
+  // (e.g., Ting-Lu → tinglu, Great Tusk → greattusk)
+  return lower.replace(/[^a-z0-9]/g, '')
+}
+
 const spriteUrl = (name: string) => `${SPRITE_BASE_URL}${toSpriteId(name)}.png`
 
 const outcomeColor = (outcome: string) => (outcome === 'Win' ? 'emerald' : 'rose')
@@ -147,76 +178,71 @@ function PokebenchHome() {
               <div className="flex flex-col gap-6">
                 <div>
                   <Title className="text-3xl font-display sm:text-4xl">
-                    Gen9 RandBats LLM rankings.
+                    Leaderboard Overview
                   </Title>
                   <TextGenerateEffect
-                    words="Trace every decision. Replay every match. Benchmark real tactical skill."
+                    words="Competitive Pokémon Showdown benchmarking for LLM agents"
                     className="font-semibold"
                     textClassName="text-lg text-slate-700 dark:text-slate-200"
                   />
-                  <Text className="mt-3 text-base">
-                    Pokebench standardizes Gen9 RandBats evaluation with identical
-                    match counts, tool access, and reasoning traces for every lab.
-                  </Text>
+                  <p className="mt-3 text-base text-tremor-content dark:text-dark-tremor-content">
+                    Pokebench is an experimental benchmark for LLM agents playing competitive{' '}
+                    <a
+                      href="https://pokemonshowdown.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-cyan-700 dark:text-cyan-400 hover:text-cyan-900 dark:hover:text-cyan-200 transition-colors"
+                    >
+                      Pokémon Showdown
+                    </a>{' '}
+                    against human players.
+                  </p>
                 </div>
                 <Flex className="flex-wrap gap-3" justifyContent="start">
                   <Button
                     color="cyan"
-                    onClick={() =>
-                      (window.location.href = 'mailto:alex@bottlenecklabs.com')
-                    }
+                    onClick={() => {
+                      // TODO: Link to actual session replay
+                      window.open('/replays/example-match', '_blank')
+                    }}
                   >
-                    Request private evals
+                    Watch replay
                   </Button>
                   <Button
-                    variant="light"
+                    variant="secondary"
+                    color="slate"
                     onClick={() => navigate({ to: '/about' })}
                   >
-                    How it works
+                    About the benchmark
                   </Button>
-                </Flex>
-                <Flex className="flex-wrap gap-4" alignItems="center">
-                  {providerLogosRow.map((provider) => (
-                    <Flex
-                      key={provider.name}
-                      className="gap-2"
-                      alignItems="center"
-                      justifyContent="start"
-                    >
-                      <img
-                        src={provider.logo.light}
-                        alt={`${provider.name} logo`}
-                        className="h-5 w-5 object-contain dark:hidden"
-                      />
-                      <img
-                        src={provider.logo.dark}
-                        alt={`${provider.name} logo`}
-                        className="hidden h-5 w-5 object-contain dark:block"
-                      />
-                      <Text className="text-xs uppercase tracking-wide">
-                        {provider.name}
-                      </Text>
-                    </Flex>
-                  ))}
                 </Flex>
               </div>
 
               <div className="flex flex-col gap-4">
                 <Grid numItemsSm={2} className="gap-4">
-                  <Card decoration="top" decorationColor="cyan">
+                  <Card decoration="left" decorationColor="cyan" className="sm:col-span-2">
                     <Text className="text-sm">Current leader</Text>
-                    <Metric>{formatElo(leader.rating)}</Metric>
-                    <Text className="text-xs">{leader.name}</Text>
+                    <Flex className="mt-2 gap-8 flex-col sm:flex-row sm:items-end" justifyContent="between">
+                      <div className="flex-1">
+                        <Metric>{leader.name}</Metric>
+                        <Text className="text-xs">{leader.model}</Text>
+                      </div>
+                      <Flex className="gap-8 flex-wrap" justifyContent="start" alignItems="end">
+                        <div>
+                          <Metric>{formatElo(leader.rating)}</Metric>
+                          <Text className="text-xs">Elo rating</Text>
+                        </div>
+                        <div>
+                          <Metric>{formatPercent(leader.winRate)}</Metric>
+                          <Text className="text-xs">Win rate</Text>
+                        </div>
+                      </Flex>
+                    </Flex>
                   </Card>
                   <Card decoration="top" decorationColor="emerald">
                     <Text className="text-sm">Average win rate</Text>
                     <Metric>{formatPercent(averageWinRate)}</Metric>
                     <Text className="text-xs">Across all agents</Text>
-                  </Card>
-                  <Card decoration="top" decorationColor="amber">
-                    <Text className="text-sm">Total matches</Text>
-                    <Metric>{totalMatches.toLocaleString()}</Metric>
-                    <Text className="text-xs">Gen9 RandBats</Text>
                   </Card>
                   <Card decoration="top" decorationColor="slate">
                     <Text className="text-sm">Average turns</Text>
@@ -224,28 +250,6 @@ function PokebenchHome() {
                     <Text className="text-xs">Tempo benchmark</Text>
                   </Card>
                 </Grid>
-                <Card className="border border-slate-200/70 bg-white/80 dark:border-slate-800/70 dark:bg-slate-950/80">
-                  <Flex justifyContent="between" alignItems="center">
-                    <Text className="text-sm">Top Elo trend</Text>
-                    <Badge
-                      size="sm"
-                      color="emerald"
-                      className={badgeTextClassName}
-                    >
-                      Updated weekly
-                    </Badge>
-                  </Flex>
-                  <Metric className="mt-3">{formatElo(leader.rating)}</Metric>
-                  <Text className="text-xs">7-week rolling average</Text>
-                  <SparkLineChart
-                    className="mt-4 h-16"
-                    data={heroTrend}
-                    index="week"
-                    categories={['OpenAI', 'Anthropic', 'Gemini']}
-                    colors={['cyan', 'emerald', 'amber']}
-                    showAnimation
-                  />
-                </Card>
               </div>
             </Grid>
           </div>
@@ -259,304 +263,263 @@ function PokebenchHome() {
                 Elo rankings for Gen9 RandBats LLM agents.
               </Text>
             </div>
-            <Flex className="flex-wrap gap-3" justifyContent="start">
-              <Button
-                color="cyan"
-                onClick={() =>
-                  (window.location.href = 'mailto:alex@bottlenecklabs.com')
-                }
-              >
-                Request private evals
-              </Button>
-              <Button
-                variant="secondary"
-                color="slate"
-                onClick={() => navigate({ to: '/about' })}
-              >
-                About the benchmark
-              </Button>
-            </Flex>
           </div>
           <Divider className="my-6" />
-          <Grid numItemsLg={3} className="gap-6">
-            <div className="lg:col-span-2 flex flex-col gap-4">
-              <Flex
-                className="w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center"
-                alignItems="start"
-                justifyContent="start"
+          <div className="flex flex-col gap-4">
+            <Flex
+              className="w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+              alignItems="start"
+              justifyContent="start"
+            >
+              <TextInput
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+                placeholder="Search agents"
+                aria-label="Search agents"
+                className="w-full sm:w-48"
+              />
+              <Select
+                value={providerFilter}
+                onValueChange={setProviderFilter}
+                placeholder="Provider"
+                aria-label="Filter by provider"
+                role="group"
+                className="w-full sm:w-40"
               >
-                <TextInput
-                  value={searchQuery}
-                  onValueChange={setSearchQuery}
-                  placeholder="Search agents"
-                  aria-label="Search agents"
-                  className="w-full sm:w-48"
-                />
-                <Select
-                  value={providerFilter}
-                  onValueChange={setProviderFilter}
-                  placeholder="Provider"
-                  aria-label="Filter by provider"
-                  role="group"
-                  className="w-full sm:w-40"
-                >
-                  {providerOptions.map((provider) => (
-                    <SelectItem key={provider} value={provider}>
-                      {provider === 'All' ? 'All providers' : provider}
-                    </SelectItem>
-                  ))}
-                </Select>
-                <Select
-                  value={sortBy}
-                  onValueChange={setSortBy}
-                  placeholder="Sort by"
-                  aria-label="Sort by"
-                  role="group"
-                  className="w-full sm:w-40"
-                >
-                  {sortOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </Select>
-                <Badge color="slate" className={slateBadgeClassName}>
-                  {filteredRows.length} agents
-                </Badge>
-              </Flex>
-              {filteredRows.length === 0 ? (
-                <Text>No agents match this filter yet.</Text>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-3 md:hidden">
-                    {filteredRows.map((agent, index) => (
-                      <Card key={agent.id}>
-                        <Flex justifyContent="between" alignItems="center">
-                          <Badge color="slate" className={slateBadgeClassName}>
-                            #{index + 1}
-                          </Badge>
-                          <Badge color="cyan" className={badgeTextClassName}>
-                            Elo {formatElo(agent.rating)}
-                          </Badge>
-                        </Flex>
-                        <Flex className="mt-3 gap-3" alignItems="center">
-                          <img
-                            src={agent.logo.light}
-                            alt={`${agent.provider} logo`}
-                            className="h-6 w-6 object-contain dark:hidden"
-                          />
-                          <img
-                            src={agent.logo.dark}
-                            alt={`${agent.provider} logo`}
-                            className="hidden h-6 w-6 object-contain dark:block"
-                          />
-                          <div>
-                            <Text className="text-sm font-medium">
-                              {agent.name}
-                            </Text>
-                            <Text className="text-xs">{agent.model}</Text>
-                          </div>
-                        </Flex>
-                        <div className="mt-4 flex flex-col gap-2">
-                          <Flex justifyContent="between" alignItems="center">
-                            <Text className="text-xs">Provider</Text>
-                            <Text className="text-xs">{agent.provider}</Text>
-                          </Flex>
-                          <Flex justifyContent="between" alignItems="center">
-                            <Text className="text-xs">Win rate</Text>
-                            <Text className="text-xs">
-                              {formatPercent(agent.winRate)}
-                            </Text>
-                          </Flex>
-                          <Flex justifyContent="between" alignItems="center">
-                            <Text className="text-xs">Avg. turns</Text>
-                            <Text className="text-xs">{agent.avgTurns}</Text>
-                          </Flex>
-                          <Flex justifyContent="between" alignItems="center">
-                            <Text className="text-xs">Matches</Text>
-                            <Text className="text-xs">{agent.matches}</Text>
-                          </Flex>
+                {providerOptions.map((provider) => (
+                  <SelectItem key={provider} value={provider}>
+                    {provider === 'All' ? 'All providers' : provider}
+                  </SelectItem>
+                ))}
+              </Select>
+              <Select
+                value={sortBy}
+                onValueChange={setSortBy}
+                placeholder="Sort by"
+                aria-label="Sort by"
+                role="group"
+                className="w-full sm:w-40"
+              >
+                {sortOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </Select>
+              <Badge color="slate" className={slateBadgeClassName}>
+                {filteredRows.length} agents
+              </Badge>
+            </Flex>
+            {filteredRows.length === 0 ? (
+              <Text>No agents match this filter yet.</Text>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 md:hidden">
+                  {filteredRows.map((agent, index) => (
+                    <Card key={agent.id}>
+                      <Flex justifyContent="between" alignItems="center">
+                        <Badge color="slate" className={slateBadgeClassName}>
+                          #{index + 1}
+                        </Badge>
+                        <Badge color="cyan" className={badgeTextClassName}>
+                          Elo {formatElo(agent.rating)}
+                        </Badge>
+                      </Flex>
+                      <Flex className="mt-3 gap-3" alignItems="center">
+                        <img
+                          src={agent.logo.light}
+                          alt={`${agent.provider} logo`}
+                          className="h-6 w-6 object-contain dark:hidden"
+                        />
+                        <img
+                          src={agent.logo.dark}
+                          alt={`${agent.provider} logo`}
+                          className="hidden h-6 w-6 object-contain dark:block"
+                        />
+                        <div>
+                          <Text className="text-sm font-medium">
+                            {agent.name}
+                          </Text>
+                          <Text className="text-xs">{agent.model}</Text>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          color="slate"
-                          className="mt-4 w-full"
-                          onClick={() =>
-                            navigate({
-                              to: '/agents/$agentId',
-                              params: { agentId: agent.id },
-                            })
-                          }
-                        >
-                          View agent detail
-                        </Button>
-                      </Card>
-                    ))}
-                  </div>
-                  <div className="hidden md:block">
-                    <Card className="p-0">
-                      <div className="overflow-x-auto">
-                        <Table className="min-w-[940px] w-full table-fixed">
-                          <TableHead>
-                            <TableRow>
-                              <TableHeaderCell className="w-[70px]">
-                                Rank
-                              </TableHeaderCell>
-                              <TableHeaderCell className="w-[240px]">
-                                Agent
-                              </TableHeaderCell>
-                              <TableHeaderCell className="w-[140px]">
-                                Provider
-                              </TableHeaderCell>
-                              <TableHeaderCell className="w-[120px]">
-                                Elo
-                              </TableHeaderCell>
-                              <TableHeaderCell className="w-[120px]">
-                                Win rate
-                              </TableHeaderCell>
-                              <TableHeaderCell className="w-[110px]">
-                                Avg. turns
-                              </TableHeaderCell>
-                              <TableHeaderCell className="w-[90px]">
-                                Matches
-                              </TableHeaderCell>
-                              <TableHeaderCell className="w-[130px]">
-                                Profile
-                              </TableHeaderCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {filteredRows.map((agent, index) => (
-                              <TableRow key={agent.id}>
-                                <TableCell>
-                                  <Badge
-                                    color="slate"
-                                    size="sm"
-                                    className={slateBadgeClassName}
-                                  >
-                                    #{index + 1}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <Flex
-                                    className="gap-3"
-                                    alignItems="center"
-                                    justifyContent="start"
-                                  >
-                                    <img
-                                      src={agent.logo.light}
-                                      alt={`${agent.provider} logo`}
-                                      className="h-6 w-6 object-contain dark:hidden"
-                                    />
-                                    <img
-                                      src={agent.logo.dark}
-                                      alt={`${agent.provider} logo`}
-                                      className="hidden h-6 w-6 object-contain dark:block"
-                                    />
-                                    <div>
-                                      <Text className="font-medium">
-                                        {agent.name}
-                                      </Text>
-                                      <Text className="text-xs">
-                                        {agent.model}
-                                      </Text>
-                                    </div>
-                                  </Flex>
-                                </TableCell>
-                                <TableCell>
-                                  <Text>{agent.provider}</Text>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    color="cyan"
-                                    size="sm"
-                                    className={badgeTextClassName}
-                                  >
-                                    {formatElo(agent.rating)}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <Text>{formatPercent(agent.winRate)}</Text>
-                                </TableCell>
-                                <TableCell>
-                                  <Text>{agent.avgTurns}</Text>
-                                </TableCell>
-                                <TableCell>
-                                  <Text>{agent.matches}</Text>
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    color="slate"
-                                    onClick={() =>
-                                      navigate({
-                                        to: '/agents/$agentId',
-                                        params: { agentId: agent.id },
-                                      })
-                                    }
-                                  >
-                                    View agent
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                      </Flex>
+                      <div className="mt-4 flex flex-col gap-2">
+                        <Flex justifyContent="between" alignItems="center">
+                          <Text className="text-xs">Provider</Text>
+                          <Text className="text-xs">{agent.provider}</Text>
+                        </Flex>
+                        <Flex justifyContent="between" alignItems="center">
+                          <Text className="text-xs">Win rate</Text>
+                          <Text className="text-xs">
+                            {formatPercent(agent.winRate)}
+                          </Text>
+                        </Flex>
+                        <Flex justifyContent="between" alignItems="center">
+                          <Text className="text-xs">Avg. turns</Text>
+                          <Text className="text-xs">{agent.avgTurns}</Text>
+                        </Flex>
+                        <Flex justifyContent="between" alignItems="center">
+                          <Text className="text-xs">Matches</Text>
+                          <Text className="text-xs">{agent.matches}</Text>
+                        </Flex>
                       </div>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        color="slate"
+                        className="mt-4 w-full"
+                        onClick={() =>
+                          navigate({
+                            to: '/agents/$agentId',
+                            params: { agentId: agent.id },
+                          })
+                        }
+                      >
+                        View agent detail
+                      </Button>
                     </Card>
-                  </div>
+                  ))}
                 </div>
-              )}
-            </div>
-            <div className="flex flex-col gap-4">
-              <Card decoration="left" decorationColor="emerald">
-                <Flex justifyContent="between" alignItems="center">
-                  <Text className="text-sm">Top agents</Text>
-                  <Badge
-                    size="sm"
-                    color="slate"
-                    className={slateBadgeClassName}
-                  >
-                    Elo
-                  </Badge>
-                </Flex>
-                <BarChart
-                  className="mt-4 h-56"
-                  data={topRatings}
-                  index="agent"
-                  categories={['rating']}
-                  colors={['emerald']}
-                  valueFormatter={(value) => formatElo(value)}
-                  layout="vertical"
-                  yAxisWidth={120}
-                  showLegend={false}
-                  showGridLines={false}
-                />
-              </Card>
-              <Card decoration="left" decorationColor="cyan">
-                <Text className="text-sm">Current leader</Text>
-                <Metric className="mt-2">{leader.name}</Metric>
-                <Text className="text-xs">{leader.model}</Text>
-                <Flex
-                  className="mt-4"
-                  justifyContent="between"
-                  alignItems="center"
-                >
-                  <Text className="text-xs">Win rate</Text>
-                  <Text className="text-xs">
-                    {formatPercent(leader.winRate)}
-                  </Text>
-                </Flex>
-                <ProgressBar
-                  className="mt-2"
-                  value={leader.winRate}
-                  color="emerald"
-                />
-              </Card>
-            </div>
-          </Grid>
+                <div className="hidden md:block">
+                  <Card className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[1100px] w-full table-fixed">
+                        <TableHead>
+                          <TableRow>
+                            <TableHeaderCell className="w-[60px]">
+                              Rank
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[200px]">
+                              Agent
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[100px]">
+                              Provider
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[90px]">
+                              Elo
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[80px]">
+                              GXE
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[90px]">
+                              Glicko-1
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[90px]">
+                              Win rate
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[90px]">
+                              Avg. turns
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[80px]">
+                              Matches
+                            </TableHeaderCell>
+                            <TableHeaderCell className="w-[120px]">
+                              Profile
+                            </TableHeaderCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {filteredRows.map((agent, index) => (
+                            <TableRow key={agent.id}>
+                              <TableCell>
+                                <Badge
+                                  color="slate"
+                                  size="sm"
+                                  className={slateBadgeClassName}
+                                >
+                                  #{index + 1}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Flex
+                                  className="gap-3"
+                                  alignItems="center"
+                                  justifyContent="start"
+                                >
+                                  <img
+                                    src={agent.logo.light}
+                                    alt={`${agent.provider} logo`}
+                                    className="h-6 w-6 object-contain dark:hidden"
+                                  />
+                                  <img
+                                    src={agent.logo.dark}
+                                    alt={`${agent.provider} logo`}
+                                    className="hidden h-6 w-6 object-contain dark:block"
+                                  />
+                                  <div>
+                                    <Text className="font-medium">
+                                      {agent.name}
+                                    </Text>
+                                    <Text className="text-xs">
+                                      {agent.model}
+                                    </Text>
+                                  </div>
+                                </Flex>
+                              </TableCell>
+                              <TableCell>
+                                <Text>{agent.provider}</Text>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  color="cyan"
+                                  size="sm"
+                                  className={badgeTextClassName}
+                                >
+                                  {formatElo(agent.rating)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  color="emerald"
+                                  size="sm"
+                                  className={badgeTextClassName}
+                                >
+                                  {agent.gxe.toFixed(1)}%
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  color="violet"
+                                  size="sm"
+                                  className={badgeTextClassName}
+                                >
+                                  {formatElo(agent.glicko1)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Text>{formatPercent(agent.winRate)}</Text>
+                              </TableCell>
+                              <TableCell>
+                                <Text>{agent.avgTurns}</Text>
+                              </TableCell>
+                              <TableCell>
+                                <Text>{agent.matches}</Text>
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  color="slate"
+                                  onClick={() =>
+                                    navigate({
+                                      to: '/agents/$agentId',
+                                      params: { agentId: agent.id },
+                                    })
+                                  }
+                                >
+                                  View agent
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
+          </div>
         </Card>
 
         <Card id="replays" className="scroll-mt-28">

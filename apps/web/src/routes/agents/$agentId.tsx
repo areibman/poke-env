@@ -34,8 +34,40 @@ const formatPercent = (value: number) => `${value.toFixed(0)}%`
 const formatTermination = (value: string) =>
   `${value.charAt(0).toUpperCase()}${value.slice(1)}`
 const SPRITE_BASE_URL = 'https://play.pokemonshowdown.com/sprites/gen5/'
-const toSpriteId = (name: string) =>
-  name.toLowerCase().replace(/[^a-z0-9-]/g, '')
+// Pokemon form suffixes that should preserve the hyphen in sprite URLs
+const FORM_SUFFIXES = new Set([
+  'wellspring', 'hearthflame', 'cornerstone', 'teal', // Ogerpon
+  'therian', 'incarnate', // Forces of Nature
+  'hisui', 'alola', 'galar', 'paldea', // Regional forms
+  'origin', 'altered', // Giratina, Dialga, Palkia
+  'primal', // Kyogre, Groudon
+  'mega', 'megax', 'megay', // Mega evolutions
+  'gmax', // Gigantamax
+  'crowned', // Zacian, Zamazenta
+  'rapidstrike', 'singlestrike', // Urshifu
+  'dusk', 'midnight', // Lycanroc
+  'lowkey', 'amped', // Toxtricity
+  'bloodmoon', // Ursaluna
+])
+
+const toSpriteId = (name: string) => {
+  const lower = name.toLowerCase()
+  const hyphenIndex = lower.lastIndexOf('-')
+
+  if (hyphenIndex > 0) {
+    const suffix = lower.slice(hyphenIndex + 1).replace(/[^a-z]/g, '')
+    if (FORM_SUFFIXES.has(suffix)) {
+      // Keep hyphen for form variants (e.g., Landorus-Therian → landorus-therian)
+      const base = lower.slice(0, hyphenIndex).replace(/[^a-z0-9]/g, '')
+      return `${base}-${suffix}`
+    }
+  }
+
+  // Remove all non-alphanumeric for regular Pokemon and names with hyphens
+  // (e.g., Ting-Lu → tinglu, Great Tusk → greattusk)
+  return lower.replace(/[^a-z0-9]/g, '')
+}
+
 const spriteUrl = (name: string) => `${SPRITE_BASE_URL}${toSpriteId(name)}.png`
 
 const outcomeColor = (outcome: string) => (outcome === 'Win' ? 'emerald' : 'rose')

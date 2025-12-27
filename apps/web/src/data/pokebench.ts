@@ -84,10 +84,12 @@ export const stackLogos = {
 export const agents = [
   {
     id: 'openai-o3-mini',
-    name: 'OpenAI o3-mini',
+    name: 'OpenAI',
     provider: 'OpenAI',
     model: 'o3-mini',
     rating: 1836,
+    gxe: 78.2,
+    glicko1: 1852,
     winRate: 64,
     matches: matchCount,
     avgTurns: 19.2,
@@ -104,6 +106,8 @@ export const agents = [
     provider: 'Anthropic',
     model: 'Claude 3.7 Sonnet',
     rating: 1788,
+    gxe: 74.5,
+    glicko1: 1801,
     winRate: 61,
     matches: matchCount,
     avgTurns: 21.4,
@@ -120,6 +124,8 @@ export const agents = [
     provider: 'Google',
     model: 'Gemini 2.0 Flash',
     rating: 1754,
+    gxe: 71.8,
+    glicko1: 1768,
     winRate: 59,
     matches: matchCount,
     avgTurns: 18.5,
@@ -136,6 +142,8 @@ export const agents = [
     provider: 'Mistral',
     model: 'Mistral Large 2',
     rating: 1712,
+    gxe: 68.4,
+    glicko1: 1725,
     winRate: 56,
     matches: matchCount,
     avgTurns: 20.1,
@@ -152,6 +160,8 @@ export const agents = [
     provider: 'Cohere',
     model: 'Command R+',
     rating: 1689,
+    gxe: 66.1,
+    glicko1: 1702,
     winRate: 54,
     matches: matchCount,
     avgTurns: 22.6,
@@ -168,6 +178,8 @@ export const agents = [
     provider: 'Meta',
     model: 'Llama 3.3 70B',
     rating: 1660,
+    gxe: 63.8,
+    glicko1: 1672,
     winRate: 52,
     matches: matchCount,
     avgTurns: 23.4,
@@ -235,8 +247,10 @@ export const leaderboardData = [...agents]
   .sort((a, b) => b.rating - a.rating)
   .map((agent) => ({
     agent: agent.name,
-    rating: agent.rating,
-    winRate: agent.winRate,
+    Elo: agent.rating,
+    GXE: agent.gxe,
+    'Glicko-1': agent.glicko1,
+    'Win %': agent.winRate,
   }))
 
 export const heroTrend = [
