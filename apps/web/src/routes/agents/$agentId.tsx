@@ -20,7 +20,7 @@ import {
   Text,
   Title,
 } from '@tremor/react'
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 
 import { agentMatches, agents } from '../../data/pokebench'
 
@@ -33,7 +33,7 @@ export const Route = createFileRoute('/agents/$agentId')({
 const formatPercent = (value: number) => `${value.toFixed(0)}%`
 const formatTermination = (value: string) =>
   `${value.charAt(0).toUpperCase()}${value.slice(1)}`
-const SPRITE_BASE_URL = 'https://play.pokemonshowdown.com/sprites/gen5/'
+
 // Pokemon form suffixes that should preserve the hyphen in sprite URLs
 const FORM_SUFFIXES = new Set([
   'wellspring', 'hearthflame', 'cornerstone', 'teal', // Ogerpon
@@ -68,7 +68,47 @@ const toSpriteId = (name: string) => {
   return lower.replace(/[^a-z0-9]/g, '')
 }
 
-const spriteUrl = (name: string) => `${SPRITE_BASE_URL}${toSpriteId(name)}.png`
+// Sprite URL sources in priority order - animated sprites first, static as fallback
+const SPRITE_SOURCES = [
+  { base: 'https://play.pokemonshowdown.com/sprites/gen5ani/', ext: '.gif' },
+  { base: 'https://play.pokemonshowdown.com/sprites/ani/', ext: '.gif' },
+  { base: 'https://play.pokemonshowdown.com/sprites/dex/', ext: '.png' },
+]
+
+const spriteUrl = (name: string, sourceIndex = 0) => {
+  const source = SPRITE_SOURCES[sourceIndex] || SPRITE_SOURCES[0]
+  return `${source.base}${toSpriteId(name)}${source.ext}`
+}
+
+// Pokemon sprite component with loading skeleton
+const PokemonSprite = ({ name, className = 'h-4 w-4' }: { name: string; className?: string }) => {
+  const [loaded, setLoaded] = React.useState(false)
+  const [sourceIndex, setSourceIndex] = React.useState(0)
+
+  const handleError = () => {
+    const nextIndex = sourceIndex + 1
+    if (nextIndex < SPRITE_SOURCES.length) {
+      setSourceIndex(nextIndex)
+      setLoaded(false)
+    }
+  }
+
+  return (
+    <div className={`relative ${className}`}>
+      {!loaded && (
+        <div className="absolute inset-0 animate-pulse rounded-sm bg-slate-300 dark:bg-slate-600" />
+      )}
+      <img
+        src={spriteUrl(name, sourceIndex)}
+        alt={`${name} sprite`}
+        className={`${className} transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        onError={handleError}
+      />
+    </div>
+  )
+}
 
 const outcomeColor = (outcome: string) => (outcome === 'Win' ? 'emerald' : 'rose')
 
@@ -292,12 +332,7 @@ function AgentDetail() {
                           justifyContent="start"
                           className="gap-1"
                         >
-                          <img
-                            src={spriteUrl(pokemon)}
-                            alt={`${pokemon} sprite`}
-                            className="h-4 w-4"
-                            loading="lazy"
-                          />
+                          <PokemonSprite name={pokemon} className="h-4 w-4" />
                           <span>{pokemon}</span>
                         </Flex>
                       </Badge>
@@ -319,12 +354,7 @@ function AgentDetail() {
                           justifyContent="start"
                           className="gap-1"
                         >
-                          <img
-                            src={spriteUrl(pokemon)}
-                            alt={`${pokemon} sprite`}
-                            className="h-4 w-4"
-                            loading="lazy"
-                          />
+                          <PokemonSprite name={pokemon} className="h-4 w-4" />
                           <span>{pokemon}</span>
                         </Flex>
                       </Badge>
@@ -394,12 +424,7 @@ function AgentDetail() {
                                   justifyContent="start"
                                   className="gap-1"
                                 >
-                                  <img
-                                    src={spriteUrl(pokemon)}
-                                    alt={`${pokemon} sprite`}
-                                    className="h-4 w-4"
-                                    loading="lazy"
-                                  />
+                                  <PokemonSprite name={pokemon} className="h-4 w-4" />
                                   <span>{pokemon}</span>
                                 </Flex>
                               </Badge>
@@ -420,12 +445,7 @@ function AgentDetail() {
                                   justifyContent="start"
                                   className="gap-1"
                                 >
-                                  <img
-                                    src={spriteUrl(pokemon)}
-                                    alt={`${pokemon} sprite`}
-                                    className="h-4 w-4"
-                                    loading="lazy"
-                                  />
+                                  <PokemonSprite name={pokemon} className="h-4 w-4" />
                                   <span>{pokemon}</span>
                                 </Flex>
                               </Badge>
