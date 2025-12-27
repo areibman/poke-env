@@ -1,0 +1,237 @@
+{
+  "generated": "2025-12-27T09:00:14.251Z",
+  "replays": [
+    {
+      "id": "battle-gen9randombattle-2506022786-ToolAgent36284",
+      "battleId": "battle-gen9randombattle-2506022786",
+      "timestamp": "2025-12-25T12:56:11.507493",
+      "outcome": "Win",
+      "termination": "normal",
+      "turns": 23,
+      "agentName": "ToolAgent36284",
+      "agentModel": "gemini/gemini-2.5-flash",
+      "opponentName": "okballer",
+      "agentTeam": [
+        "Gastrodon",
+        "Exeggutor",
+        "Rotommow",
+        "Oranguru",
+        "Gyarados"
+      ],
+      "opponentTeam": [
+        "Dunsparce",
+        "Pachirisu",
+        "Noctowl",
+        "Virizion",
+        "Typhlosionhisui",
+        "Forretress"
+      ],
+      "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506022786",
+      "hasReplayHtml": false,
+      "hasReasoning": true
+    },
+    {
+      "id": "battle-gen9randombattle-2506018446-ToolAgent75096",
+      "battleId": "battle-gen9randombattle-2506018446",
+      "timestamp": "2025-12-25T12:42:41.483480",
+      "outcome": "Loss",
+      "termination": "normal",
+      "turns": 25,
+      "agentName": "ToolAgent75096",
+      "agentModel": "gemini/gemini-2.5-flash",
+      "opponentName": "cortisolsspikerrer",
+      "agentTeam": [
+        "Infernape",
+        "Gumshoos",
+        "Lumineon",
+        "Regigigas",
+        "Bastiodon"
+      ],
+      "opponentTeam": [
+        "Vaporeon",
+        "Smeargle",
+        "Rillaboom",
+        "Mudsdale",
+        "Ironcrown"
+      ],
+      "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506018446",
+      "hasReplayHtml": false,
+      "hasReasoning": true
+    },
+    {
+      "id": "battle-gen9randombattle-2506010925-ToolAgent17920",
+      "battleId": "battle-gen9randombattle-2506010925",
+      "timestamp": "2025-12-25T12:19:59.710808",
+      "outcome": "Win",
+      "termination": "normal",
+      "turns": 23,
+      "agentName": "ToolAgent17920",
+      "agentModel": "gemini/gemini-2.5-flash",
+      "opponentName": "tffgbhnj",
+      "agentTeam": [
+        "Azelf",
+        "Cloyster",
+        "Mew",
+        "Corviknight",
+        "Zebstrika"
+      ],
+      "opponentTeam": [
+        "Ambipom",
+        "Kingambit",
+        "Rotomfan",
+        "Chansey",
+        "Noivern",
+        "Basculegion"
+      ],
+      "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506010925",
+      "hasReplayHtml": false,
+      "hasReasoning": true
+    },
+    {
+      "id": "battle-gen9randombattle-2506003754-ToolAgent17182",
+      "battleId": "battle-gen9randombattle-2506003754",
+      "timestamp": "2025-12-25T11:59:02.971652",
+      "outcome": "Loss",
+      "termination": "normal",
+      "turns": 19,
+      "agentName": "ToolAgent17182",
+      "agentModel": "gemini/gemini-2.5-flash",
+      "opponentName": "Aidenluxury",
+      "agentTeam": [
+        "Hatterene",
+        "Cacturne",
+        "Amoonguss",
+        "Urshifu",
+        "Gothitelle"
+      ],
+      "opponentTeam": [
+        "Gumshoos",
+        "Ironbundle",
+        "Pecharunt",
+        "Passimian",
+        "Regieleki"
+      ],
+      "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506003754",
+      "hasReplayHtml": false,
+      "hasReasoning": true
+    }
+  ],
+  "byAgent": {
+    "gemini/gemini-2.5-flash": [
+      {
+        "id": "battle-gen9randombattle-2506022786-ToolAgent36284",
+        "battleId": "battle-gen9randombattle-2506022786",
+        "timestamp": "2025-12-25T12:56:11.507493",
+        "outcome": "Win",
+        "termination": "normal",
+        "turns": 23,
+        "agentName": "ToolAgent36284",
+        "agentModel": "gemini/gemini-2.5-flash",
+        "opponentName": "okballer",
+        "agentTeam": [
+          "Gastrodon",
+          "Exeggutor",
+          "Rotommow",
+          "Oranguru",
+          "Gyarados"
+        ],
+        "opponentTeam": [
+          "Dunsparce",
+          "Pachirisu",
+          "Noctowl",
+          "Virizion",
+          "Typhlosionhisui",
+          "Forretress"
+        ],
+        "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506022786",
+        "hasReplayHtml": false,
+        "hasReasoning": true
+      },
+      {
+        "id": "battle-gen9randombattle-2506018446-ToolAgent75096",
+        "battleId": "battle-gen9randombattle-2506018446",
+        "timestamp": "2025-12-25T12:42:41.483480",
+        "outcome": "Loss",
+        "termination": "normal",
+        "turns": 25,
+        "agentName": "ToolAgent75096",
+        "agentModel": "gemini/gemini-2.5-flash",
+        "opponentName": "cortisolsspikerrer",
+        "agentTeam": [
+          "Infernape",
+          "Gumshoos",
+          "Lumineon",
+          "Regigigas",
+          "Bastiodon"
+        ],
+        "opponentTeam": [
+          "Vaporeon",
+          "Smeargle",
+          "Rillaboom",
+          "Mudsdale",
+          "Ironcrown"
+        ],
+        "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506018446",
+        "hasReplayHtml": false,
+        "hasReasoning": true
+      },
+      {
+        "id": "battle-gen9randombattle-2506010925-ToolAgent17920",
+        "battleId": "battle-gen9randombattle-2506010925",
+        "timestamp": "2025-12-25T12:19:59.710808",
+        "outcome": "Win",
+        "termination": "normal",
+        "turns": 23,
+        "agentName": "ToolAgent17920",
+        "agentModel": "gemini/gemini-2.5-flash",
+        "opponentName": "tffgbhnj",
+        "agentTeam": [
+          "Azelf",
+          "Cloyster",
+          "Mew",
+          "Corviknight",
+          "Zebstrika"
+        ],
+        "opponentTeam": [
+          "Ambipom",
+          "Kingambit",
+          "Rotomfan",
+          "Chansey",
+          "Noivern",
+          "Basculegion"
+        ],
+        "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506010925",
+        "hasReplayHtml": false,
+        "hasReasoning": true
+      },
+      {
+        "id": "battle-gen9randombattle-2506003754-ToolAgent17182",
+        "battleId": "battle-gen9randombattle-2506003754",
+        "timestamp": "2025-12-25T11:59:02.971652",
+        "outcome": "Loss",
+        "termination": "normal",
+        "turns": 19,
+        "agentName": "ToolAgent17182",
+        "agentModel": "gemini/gemini-2.5-flash",
+        "opponentName": "Aidenluxury",
+        "agentTeam": [
+          "Hatterene",
+          "Cacturne",
+          "Amoonguss",
+          "Urshifu",
+          "Gothitelle"
+        ],
+        "opponentTeam": [
+          "Gumshoos",
+          "Ironbundle",
+          "Pecharunt",
+          "Passimian",
+          "Regieleki"
+        ],
+        "replayUrl": "/replays/sample-replay.html#battle-gen9randombattle-2506003754",
+        "hasReplayHtml": false,
+        "hasReasoning": true
+      }
+    ]
+  }
+}

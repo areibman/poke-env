@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   Accordion,
   AccordionBody,
@@ -22,6 +22,8 @@ import {
   providerLogosRow,
   replayPreview,
   runtimeStack,
+  realReplays,
+  hasRealReplays,
 } from '../data/pokebench'
 
 import { SiteNavbar } from '@/components/SiteNavbar'
@@ -58,6 +60,7 @@ const slateBadgeClassName =
   '!bg-slate-200 !bg-opacity-100 !text-slate-900 !ring-slate-300 dark:!bg-slate-800 dark:!bg-opacity-100 dark:!text-slate-100 dark:!ring-slate-700'
 
 function AboutPokebench() {
+  const navigate = useNavigate()
   return (
     <main className="min-h-screen">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 pt-10 pb-20">
@@ -367,7 +370,14 @@ function AboutPokebench() {
             variant="secondary"
             color="slate"
             className="mt-6"
-            onClick={() => (window.location.href = replayPreview[0].replayUrl)}
+            onClick={() => {
+              const firstReplay = hasRealReplays ? realReplays[0] : null
+              if (firstReplay) {
+                navigate({ to: '/replays/$battleId', params: { battleId: firstReplay.battleId } })
+              } else {
+                window.location.href = replayPreview[0].replayUrl
+              }
+            }}
           >
             Open sample replay
           </Button>

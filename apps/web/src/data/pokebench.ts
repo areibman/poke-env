@@ -1,3 +1,9 @@
+import type { ReplayManifest, ReplayMatch } from '../types/replays'
+import replayManifestData from './replays-manifest.json'
+
+// Type assertion for the imported JSON
+const replayManifest = replayManifestData as ReplayManifest
+
 const teamPool = [
   'Dragapult',
   'Great Tusk',
@@ -397,3 +403,43 @@ export const providerLogosRow = [
 ]
 
 export const replayPreview = agentMatches[agents[0].id].slice(0, 6)
+
+// Real replays from the manifest
+export const realReplays = replayManifest.replays
+export const realReplaysByAgent = replayManifest.byAgent
+export const hasRealReplays = replayManifest.replays.length > 0
+export const replayManifestGenerated = replayManifest.generated
+
+// Get real replays for a specific model, or empty array if none
+export const getRealReplaysForModel = (model: string): ReplayMatch[] => {
+  return replayManifest.byAgent[model] || []
+}
+
+// Get all unique models that have real replays
+export const getModelsWithReplays = (): string[] => {
+  return Object.keys(replayManifest.byAgent)
+}
+
+// Convert a real replay to match the mock match format
+export const replayToMatch = (replay: ReplayMatch) => ({
+  id: replay.id,
+  outcome: replay.outcome,
+  termination: replay.termination,
+  turns: replay.turns,
+  agentTeam: replay.agentTeam,
+  opponentTeam: replay.opponentTeam,
+  replayUrl: replay.replayUrl,
+  timestamp: replay.timestamp.split('T')[0],
+  hasReplayHtml: replay.hasReplayHtml,
+  hasReasoning: replay.hasReasoning,
+  agentName: replay.agentName,
+  agentModel: replay.agentModel,
+  opponentName: replay.opponentName,
+  battleId: replay.battleId,
+})
+
+// Combined preview: real replays first, then mock data to fill
+export const combinedReplayPreview = [
+  ...realReplays.slice(0, 6).map(replayToMatch),
+  ...replayPreview.slice(0, Math.max(0, 6 - realReplays.length)),
+]

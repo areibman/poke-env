@@ -33,10 +33,12 @@ async def main():
             print(f"Challenging {opponent} as {player.username}...")
             await player.send_challenges(opponent, n_challenges=1)
     else:
-        print(f"Searching ladder as {player.username}...")
-        await player.ladder(1)
+        n_battles = int(os.environ.get("PS_NUM_BATTLES", "5"))
+        print(f"Searching ladder as {player.username} for {n_battles} battles...")
+        await player.ladder(n_battles)
 
-    while player.n_finished_battles < 1:
+    target_battles = int(os.environ.get("PS_NUM_BATTLES", "5")) if not opponent else 1
+    while player.n_finished_battles < target_battles:
         await asyncio.sleep(1)
 
     print(

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReplaysBattleIdRouteImport } from './routes/replays/$battleId'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 
 const AboutRoute = AboutRouteImport.update({
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReplaysBattleIdRoute = ReplaysBattleIdRouteImport.update({
+  id: '/replays/$battleId',
+  path: '/replays/$battleId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
   id: '/agents/$agentId',
   path: '/agents/$agentId',
@@ -33,30 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/replays/$battleId': typeof ReplaysBattleIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/replays/$battleId': typeof ReplaysBattleIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/replays/$battleId': typeof ReplaysBattleIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/agents/$agentId'
+  fullPaths: '/' | '/about' | '/agents/$agentId' | '/replays/$battleId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/agents/$agentId'
-  id: '__root__' | '/' | '/about' | '/agents/$agentId'
+  to: '/' | '/about' | '/agents/$agentId' | '/replays/$battleId'
+  id: '__root__' | '/' | '/about' | '/agents/$agentId' | '/replays/$battleId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AgentsAgentIdRoute: typeof AgentsAgentIdRoute
+  ReplaysBattleIdRoute: typeof ReplaysBattleIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/replays/$battleId': {
+      id: '/replays/$battleId'
+      path: '/replays/$battleId'
+      fullPath: '/replays/$battleId'
+      preLoaderRoute: typeof ReplaysBattleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents/$agentId': {
       id: '/agents/$agentId'
       path: '/agents/$agentId'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AgentsAgentIdRoute: AgentsAgentIdRoute,
+  ReplaysBattleIdRoute: ReplaysBattleIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

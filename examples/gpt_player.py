@@ -8,6 +8,8 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import time
+from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from litellm import completion
@@ -33,8 +35,8 @@ RESET_COLOR = "\033[0m"
 RAND_BATS = RandbatsDex.load_gen9()
 DAMAGE_CALC = DamageCalculator(gen=9)
 
-MODEL_DEFAULT = "gemini/gemini-3-pro-preview"
-LLM_TIMEOUT_S = 25
+MODEL_DEFAULT = "gemini/gemini-3-flash-preview"
+LLM_TIMEOUT_S = 120  # Generous timeout - Pokemon Showdown has its own turn timer
 
 
 # ## Prompt helpers
@@ -332,16 +334,29 @@ These are the ONLY actions you can select. Do NOT choose any moves from the oppo
 
 Reason carefully about the best move to make. Consider things like the opponent's team, the weather, the side conditions (i.e. stealth rock, spikes, sticky web, etc.). Consider the effectiveness of the move against the opponent's team, but also consider the power of the move, and the accuracy. You may also switch to a different pokemon if you think it is a better option. Given the complexity of the game, you may also sometimes choose to "sacrifice" your pokemon to put your team in a better position.
 
-Return ONLY a JSON object with a single key `action` set to one of the allowed IDs. Example: {{"action": "earthquake"}}.
+Return a JSON object with two keys:
+- "reasoning": A brief explanation of your strategic thinking (2-3 sentences)
+- "action": One of the allowed action IDs
+
+Example: {{"reasoning": "Earthquake is super effective against the opponent's Steel type and has high base power.", "action": "earthquake"}}
 """
     return prompt
 
 
 def _extract_response_text(response: Any) -> str:
+    # Handle dict response
     if isinstance(response, dict):
         try:
             return response["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError):
+            pass
+    # Handle litellm ModelResponse object
+    if hasattr(response, 'choices') and response.choices:
+        try:
+            content = response.choices[0].message.content
+            if content:
+                return content
+        except (AttributeError, IndexError):
             pass
     return str(response)
 
@@ -362,6 +377,266 @@ def _parse_action(text: str, allowed: List[str]) -> Optional[str]:
     return None
 
 
+@dataclass
+class TurnTrace:
+    """Reasoning trace for a single turn."""
+    turn: int
+    pokemon_matchup: str  # e.g., "Pikachu vs Charizard"
+    prompt_summary: str = ""  # Condensed version of what the agent saw
+    reasoning: str = ""
+    final_action: str = ""
+    raw_response: str = ""  # Full LLM response
+    reasoning_time_ms: int = 0  # Time taken for full reasoning in milliseconds
+
+
+def _analyze_speed(battle: AbstractBattle) -> str:
+    """Analyze speed matchup between active Pokemon using @smogon/calc.
+    
+    Uses the official damage calculator for accurate speed stat calculation.
+    Assumes max speed investment for opponent (worst case scenario).
+    """
+    player = battle.active_pokemon
+    opponent = battle.opponent_active_pokemon
+    
+    player_spe_boost = player.boosts.get("spe", 0)
+    opponent_spe_boost = opponent.boosts.get("spe", 0)
+    
+    # Use the official calculator for speed comparison
+    # Both assume max speed investment for fair comparison
+    speed_result = DAMAGE_CALC.compare_speed(
+        pokemon1_name=player.species,
+        pokemon2_name=opponent.species,
+        pokemon1_boosts={"spe": player_spe_boost} if player_spe_boost else None,
+        pokemon2_boosts={"spe": opponent_spe_boost} if opponent_spe_boost else None,
+        pokemon1_item=player.item if player.item else None,
+        pokemon2_item=None,  # Unknown opponent item
+        pokemon1_ability=player.ability if player.ability else None,
+        pokemon2_ability=opponent.ability if opponent.ability else None,
+    )
+    
+    if speed_result.ok:
+        if speed_result.verdict == "POKEMON1_FASTER":
+            verdict = "YOU ARE FASTER"
+        elif speed_result.verdict == "POKEMON2_FASTER":
+            verdict = "OPPONENT IS FASTER"
+        else:
+            verdict = "SPEED TIE"
+        
+        player_boost_str = f"+{player_spe_boost}" if player_spe_boost > 0 else str(player_spe_boost)
+        opp_boost_str = f"+{opponent_spe_boost}" if opponent_spe_boost > 0 else str(opponent_spe_boost)
+        
+        return (
+            f"⚡ SPEED: {verdict} | "
+            f"You: {player.species} (base:{speed_result.pokemon1_base_spe}, eff:{speed_result.pokemon1_effective_spe}, boost:{player_boost_str}) | "
+            f"Opp: {opponent.species} (base:{speed_result.pokemon2_base_spe}, eff:{speed_result.pokemon2_effective_spe}, boost:{opp_boost_str})"
+        )
+    else:
+        # Fallback to base speed comparison if calc fails
+        player_base_spe = player.base_stats.get("spe", 0)
+        opponent_base_spe = opponent.base_stats.get("spe", 0)
+        
+        if player_base_spe > opponent_base_spe:
+            verdict = "YOU ARE LIKELY FASTER"
+        elif opponent_base_spe > player_base_spe:
+            verdict = "OPPONENT IS LIKELY FASTER"
+        else:
+            verdict = "SPEED TIE"
+        
+        player_boost_str = f"+{player_spe_boost}" if player_spe_boost > 0 else str(player_spe_boost)
+        opp_boost_str = f"+{opponent_spe_boost}" if opponent_spe_boost > 0 else str(opponent_spe_boost)
+        
+        return f"⚡ SPEED: {verdict} | You: {player.species} (base:{player_base_spe}, boost:{player_boost_str}) | Opp: {opponent.species} (base:{opponent_base_spe}, boost:{opp_boost_str})"
+
+
+def _analyze_switches(battle: AbstractBattle) -> List[str]:
+    """Analyze switch matchups against opponent."""
+    if not battle.available_switches:
+        return []
+    
+    opponent = battle.opponent_active_pokemon
+    opponent_types = [t.name for t in opponent.types if t]
+    
+    lines = ["🔄 SWITCH OPTIONS:"]
+    for i, pokemon in enumerate(battle.available_switches):
+        pokemon_types = [t.name for t in pokemon.types if t]
+        type_str = "/".join(pokemon_types)
+        hp_str = f"{pokemon.current_hp_fraction * 100:.0f}%"
+        status_str = f" [{pokemon.status.name}]" if pokemon.status else ""
+        
+        # Simple matchup analysis based on STAB types
+        matchup_notes = []
+        for opp_type in opponent_types:
+            # Check if we resist their STAB
+            effectiveness = 1.0
+            for our_type in pokemon_types:
+                type_chart = RAND_BATS._type_chart if hasattr(RAND_BATS, '_type_chart') else {}
+                # Simplified - just note the types
+            pass
+        
+        lines.append(f"  switch-{i}: {pokemon.species} ({type_str}) - {hp_str}{status_str}")
+    
+    return lines
+
+
+def _create_prompt_summary_from_battle(battle: AbstractBattle, opponent_roles: List[Dict[str, Any]], damage_summary: str) -> str:
+    """Create a detailed multi-line summary showing all precomputed information."""
+    sections = []
+    
+    player = battle.active_pokemon
+    opponent = battle.opponent_active_pokemon
+    player_types = "/".join([t.name for t in player.types if t])
+    opponent_types = "/".join([t.name for t in opponent.types if t])
+    
+    # === MATCHUP HEADER ===
+    sections.append(f"⚔️ MATCHUP: {player.species} ({player_types}, {player.current_hp_fraction * 100:.0f}% HP) vs {opponent.species} ({opponent_types}, {opponent.current_hp_fraction * 100:.0f}% HP)")
+    
+    # === SPEED ANALYSIS ===
+    sections.append(_analyze_speed(battle))
+    
+    # === YOUR MOVES + DAMAGE CALCS ===
+    if battle.available_moves:
+        move_lines = ["🎯 YOUR MOVES:"]
+        for move in battle.available_moves:
+            move_type = move.type.name if move.type else "???"
+            category = move.category.name if move.category else "???"
+            priority_str = f", Pri:{move.priority}" if move.priority != 0 else ""
+            move_lines.append(f"  → {move.id} ({move_type}, {category}, BP:{move.base_power}, Acc:{move.accuracy}{priority_str})")
+        sections.append("\n".join(move_lines))
+    
+    # === DAMAGE CALCULATIONS ===
+    if damage_summary and "Damage calc" in damage_summary:
+        dmg_lines = [l.strip() for l in damage_summary.split('\n') if l.strip().startswith('- ')]
+        if dmg_lines:
+            calc_section = ["📊 DAMAGE CALCS:"]
+            for line in dmg_lines[:10]:  # Show up to 10 calcs
+                calc_section.append(f"  {line}")
+            sections.append("\n".join(calc_section))
+    
+    # === OPPONENT ROLES ===
+    if opponent_roles:
+        role_section = [f"🔍 OPPONENT LIKELY SETS ({opponent.species}):"]
+        for role in opponent_roles[:3]:  # Show up to 3 roles
+            role_name = role.get("role", "Unknown")
+            moves = role.get("moves", [])
+            abilities = role.get("abilities", [])
+            items = role.get("items", [])
+            tera = role.get("tera_types", [])
+            
+            role_section.append(f"  [{role_name}]")
+            if moves:
+                role_section.append(f"    Moves: {', '.join(moves[:6])}")
+            if abilities:
+                role_section.append(f"    Abilities: {', '.join(abilities[:3])}")
+            if items:
+                role_section.append(f"    Items: {', '.join(items[:3])}")
+            if tera:
+                role_section.append(f"    Tera: {', '.join(tera[:3])}")
+        sections.append("\n".join(role_section))
+    
+    # === SWITCH OPTIONS ===
+    if battle.available_switches:
+        switch_section = ["🔄 SWITCH OPTIONS:"]
+        for i, pokemon in enumerate(battle.available_switches):
+            pokemon_types = "/".join([t.name for t in pokemon.types if t])
+            hp_str = f"{pokemon.current_hp_fraction * 100:.0f}%"
+            status_str = f" [{pokemon.status.name}]" if pokemon.status else ""
+            switch_section.append(f"  switch-{i}: {pokemon.species} ({pokemon_types}) - {hp_str}{status_str}")
+        sections.append("\n".join(switch_section))
+    
+    # === FIELD CONDITIONS ===
+    field_info = []
+    if battle.weather:
+        field_info.append(f"Weather: {battle.weather.name}")
+    if battle.fields:
+        field_info.append(f"Terrain: {[f.name for f in battle.fields]}")
+    if battle.side_conditions:
+        field_info.append(f"Your side: {[sc.name for sc in battle.side_conditions]}")
+    if battle.opponent_side_conditions:
+        field_info.append(f"Opp side: {[sc.name for sc in battle.opponent_side_conditions]}")
+    if field_info:
+        sections.append("🌍 FIELD: " + " | ".join(field_info))
+    
+    return "\n\n".join(sections)
+
+
+def _format_trace_as_chat(trace: TurnTrace, username: str) -> List[str]:
+    """Format a turn trace as Pokemon Showdown chat protocol lines.
+
+    Returns lines like: |c|☆Username|message
+    These appear in the battle log chat sidebar.
+    """
+    lines = []
+
+    # Prompt summary - each line gets its own chat message for readability
+    if trace.prompt_summary:
+        # Split by double newlines (sections) and single newlines (within sections)
+        for section in trace.prompt_summary.split("\n\n"):
+            for line in section.split("\n"):
+                if line.strip():
+                    lines.append(f"|c|☆{username}|{line.strip()}")
+
+    # Reasoning
+    if trace.reasoning:
+        # Truncate very long reasoning for readability
+        reasoning = trace.reasoning
+        if len(reasoning) > 500:
+            reasoning = reasoning[:497] + "..."
+        lines.append(f"|c|☆{username}|💭 {reasoning}")
+
+    # Final action with timing
+    time_str = ""
+    if trace.reasoning_time_ms > 0:
+        if trace.reasoning_time_ms >= 1000:
+            time_str = f" ({trace.reasoning_time_ms / 1000:.1f}s)"
+        else:
+            time_str = f" ({trace.reasoning_time_ms}ms)"
+    lines.append(f"|c|☆{username}|✓ ACTION: {trace.final_action}{time_str}")
+
+    return lines
+
+
+def inject_traces_into_replay(
+    replay_path: str, traces: List[TurnTrace], username: str
+) -> None:
+    """Inject reasoning traces as chat messages into the replay battle log.
+
+    Inserts chat lines after each |turn|N marker in the battle-log-data script.
+    """
+    if not os.path.exists(replay_path):
+        return
+
+    with open(replay_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Build a map of turn -> trace
+    trace_by_turn: Dict[int, TurnTrace] = {}
+    for trace in traces:
+        # If multiple traces for same turn, keep the last one
+        trace_by_turn[trace.turn] = trace
+
+    # Find the battle-log-data script section and inject chat lines after |turn|N
+    lines = content.split('\n')
+    new_lines = []
+
+    for line in lines:
+        new_lines.append(line)
+
+        # Check if this line is a turn marker: |turn|N (may have leading whitespace)
+        stripped = line.strip()
+        if stripped.startswith('|turn|'):
+            try:
+                turn_num = int(stripped.split('|')[2])
+                if turn_num in trace_by_turn:
+                    trace = trace_by_turn[turn_num]
+                    chat_lines = _format_trace_as_chat(trace, username)
+                    new_lines.extend(chat_lines)
+            except (IndexError, ValueError):
+                pass
+
+    with open(replay_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(new_lines))
+
+
 
 
 class GeminiPlayer(Player):
@@ -379,6 +654,8 @@ class GeminiPlayer(Player):
         self.reasoning_effort = reasoning_effort
         self.battle_logger = battle_logger
         self.color = LIGHT_BLUE
+        # Store reasoning traces per battle for replay injection
+        self._battle_traces: Dict[str, List[TurnTrace]] = {}
 
     async def _handle_battle_request(
         self,
@@ -397,7 +674,27 @@ class GeminiPlayer(Player):
     def _battle_finished_callback(self, battle: AbstractBattle):
         """Called when a battle finishes."""
         super()._battle_finished_callback(battle)
-        if self.battle_logger and hasattr(battle, "battle_tag"):
+
+        battle_tag = getattr(battle, "battle_tag", None)
+        if battle_tag:
+            # Inject traces into replay HTML
+            traces = self._battle_traces.get(battle_tag, [])
+            if traces:
+                # Find the replay file
+                replay_folder = "replays"
+                if hasattr(battle, "_save_replays") and isinstance(battle._save_replays, str):
+                    replay_folder = battle._save_replays
+                replay_path = os.path.join(
+                    replay_folder, f"{self.username} - {battle_tag}.html"
+                )
+                inject_traces_into_replay(replay_path, traces, self.username)
+                print(f"{self.color}Injected {len(traces)} reasoning traces into replay{RESET_COLOR}")
+
+            # Clean up traces for this battle
+            if battle_tag in self._battle_traces:
+                del self._battle_traces[battle_tag]
+
+        if self.battle_logger and battle_tag:
             winner = None
             if battle.won:
                 winner = self.username
@@ -405,13 +702,40 @@ class GeminiPlayer(Player):
                 winner = battle.opponent_username
 
             self.battle_logger.end_battle(
-                battle_id=battle.battle_tag,
+                battle_id=battle_tag,
                 winner=winner,
                 outcome_details={"final_turn": battle.turn},
             )
 
     def choose_max_damage_move(self, battle: Battle):
         return max(battle.available_moves, key=lambda move: move.base_power)
+
+    def _store_trace(
+        self,
+        battle: AbstractBattle,
+        reasoning: str,
+        action: str,
+        prompt_summary: str = "",
+        raw_response: str = "",
+        reasoning_time_ms: int = 0,
+    ):
+        """Store a reasoning trace for later injection into the replay."""
+        battle_tag = getattr(battle, "battle_tag", None)
+        if battle_tag:
+            if battle_tag not in self._battle_traces:
+                self._battle_traces[battle_tag] = []
+
+            matchup = f"{battle.active_pokemon.species} vs {battle.opponent_active_pokemon.species}" if battle.active_pokemon and battle.opponent_active_pokemon else "unknown"
+            trace = TurnTrace(
+                turn=battle.turn,
+                pokemon_matchup=matchup,
+                prompt_summary=prompt_summary,
+                reasoning=reasoning,
+                final_action=action,
+                raw_response=raw_response,
+                reasoning_time_ms=reasoning_time_ms,
+            )
+            self._battle_traces[battle_tag].append(trace)
 
     async def choose_move(self, battle: AbstractBattle):
         # Check if this is the first turn and we need to start logging
@@ -468,7 +792,11 @@ class GeminiPlayer(Player):
                     else battle.available_switches[0]
                 )
 
-        if battle.available_moves:
+        # Handle both moves and forced switches (after KO)
+        if battle.available_moves or battle.available_switches:
+            # Start timing for full reasoning
+            reasoning_start = time.perf_counter()
+            
             available_switches_info = []
             for i, pokemon in enumerate(battle.available_switches):
                 available_switches_info.append(
@@ -503,28 +831,38 @@ class GeminiPlayer(Player):
             full_prompt = f"Instructions: {system_prompt}\n\nUser: {user_message}"
 
             api_key = os.environ.get("GEMINI_API_KEY")
+            if not api_key:
+                print(f"{self.color}Warning: GEMINI_API_KEY not set{RESET_COLOR}")
             try:
-                response = await asyncio.wait_for(
-                    asyncio.to_thread(
-                        completion,
-                        model=self.model,
-                        messages=[
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_message},
-                        ],
-                        reasoning_effort=self.reasoning_effort,
-                        timeout=LLM_TIMEOUT_S,
-                        api_key=api_key,
-                    ),
+                response = await asyncio.to_thread(
+                    completion,
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message},
+                    ],
+                    reasoning_effort=self.reasoning_effort,
                     timeout=LLM_TIMEOUT_S,
+                    api_key=api_key,
                 )
             except Exception as e:
-                print(f"{self.color}Error calling Gemini API: {e}{RESET_COLOR}")
-                return self.create_order(
-                    battle.available_moves[0]
-                    if battle.available_moves
-                    else battle.available_switches[0]
+                reasoning_time_ms = int((time.perf_counter() - reasoning_start) * 1000)
+                print(f"{self.color}Error calling Gemini API: {type(e).__name__}: {e}{RESET_COLOR}")
+                fallback_action = battle.available_moves[0] if battle.available_moves else battle.available_switches[0]
+                fallback_id = fallback_action.id if hasattr(fallback_action, 'id') else f"switch-0"
+                prompt_summary = _create_prompt_summary_from_battle(battle, opponent_roles, damage_summary)
+                self._store_trace(
+                    battle,
+                    f"[ERROR] {type(e).__name__}: {e} - using fallback",
+                    fallback_id,
+                    prompt_summary=prompt_summary,
+                    raw_response=f"[API ERROR: {e}]",
+                    reasoning_time_ms=reasoning_time_ms,
                 )
+                return self.create_order(fallback_action)
+            
+            # Calculate reasoning time
+            reasoning_time_ms = int((time.perf_counter() - reasoning_start) * 1000)
 
             completion_text = _extract_response_text(response)
             chosen_move_id = _parse_action(completion_text, all_actions)
@@ -537,6 +875,46 @@ class GeminiPlayer(Player):
                 )
 
             chosen_order = choose_order_from_id(chosen_move_id, battle)
+
+            # Store trace for replay injection
+            # Extract reasoning from JSON response if possible
+            reasoning_text = completion_text
+
+            # Try to extract JSON from the response (may be wrapped in markdown code blocks)
+            json_str = completion_text.strip()
+            if "```json" in json_str:
+                start = json_str.find("```json") + 7
+                end = json_str.find("```", start)
+                if end > start:
+                    json_str = json_str[start:end].strip()
+            elif "```" in json_str:
+                start = json_str.find("```") + 3
+                end = json_str.find("```", start)
+                if end > start:
+                    json_str = json_str[start:end].strip()
+
+            try:
+                parsed = json.loads(json_str)
+                if "reasoning" in parsed:
+                    reasoning_text = parsed["reasoning"]
+            except (json.JSONDecodeError, TypeError):
+                # If not JSON, use the raw text but clean it up
+                # Remove the ModelResponse wrapper if present
+                if "content='" in completion_text:
+                    start = completion_text.find("content='") + len("content='")
+                    end = completion_text.find("', role=")
+                    if end > start:
+                        reasoning_text = completion_text[start:end]
+            
+            prompt_summary = _create_prompt_summary_from_battle(battle, opponent_roles, damage_summary)
+            self._store_trace(
+                battle,
+                reasoning_text,
+                chosen_move_id,
+                prompt_summary=prompt_summary,
+                raw_response=completion_text,
+                reasoning_time_ms=reasoning_time_ms,
+            )
 
             if self.battle_logger and hasattr(battle, "battle_tag"):
                 battle_state = {
@@ -569,7 +947,15 @@ class GeminiPlayer(Player):
 
             return self.create_order(chosen_order)
 
-        print(f"{self.color}No moves available calling random{RESET_COLOR}")
+        print(f"{self.color}No moves/switches available (turn {battle.turn}, active: {battle.active_pokemon.species if battle.active_pokemon else 'none'}) - using random{RESET_COLOR}")
+        fallback_summary = f"You: {battle.active_pokemon.species if battle.active_pokemon else '?'} | Opp: {battle.opponent_active_pokemon.species if battle.opponent_active_pokemon else '?'} | NO MOVES AVAILABLE"
+        self._store_trace(
+            battle,
+            "[FALLBACK] No moves/switches available - using random",
+            "random",
+            prompt_summary=fallback_summary,
+            raw_response="[NO LLM CALL - fallback]",
+        )
         return self.choose_random_move(battle)
 
 

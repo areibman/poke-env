@@ -11,7 +11,6 @@ import {
   ProgressCircle,
   Select,
   SelectItem,
-  SparkLineChart,
   Subtitle,
   Table,
   TableBody,
@@ -23,14 +22,14 @@ import {
   TextInput,
   Title,
 } from '@tremor/react'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   agents,
-  heroTrend,
   leaderboardData,
-  providerLogosRow,
   replayPreview,
+  realReplays,
+  hasRealReplays,
 } from '../data/pokebench'
 
 import { BackgroundBeams } from '@/components/ui/background-beams'
@@ -41,6 +40,8 @@ export const Route = createFileRoute('/')({
   component: PokebenchHome,
 })
 
+// Use gen5 sprites (static PNG) - they have ALL Pokemon including Gen9 DLC
+const SPRITE_BASE_URL = 'https://play.pokemonshowdown.com/sprites/gen5/'
 const formatPercent = (value: number) => `${value.toFixed(0)}%`
 const formatElo = (value: number) => `${value.toLocaleString()}`
 const formatTermination = (value: string) =>
@@ -83,47 +84,7 @@ const toSpriteId = (name: string) => {
   return lower.replace(/[^a-z0-9]/g, '')
 }
 
-// Sprite URL sources in priority order - animated sprites first, static as fallback
-const SPRITE_SOURCES = [
-  { base: 'https://play.pokemonshowdown.com/sprites/gen5ani/', ext: '.gif' },
-  { base: 'https://play.pokemonshowdown.com/sprites/ani/', ext: '.gif' },
-  { base: 'https://play.pokemonshowdown.com/sprites/dex/', ext: '.png' },
-]
-
-const spriteUrl = (name: string, sourceIndex = 0) => {
-  const source = SPRITE_SOURCES[sourceIndex] || SPRITE_SOURCES[0]
-  return `${source.base}${toSpriteId(name)}${source.ext}`
-}
-
-// Pokemon sprite component with loading skeleton
-const PokemonSprite = ({ name, className = 'h-4 w-4' }: { name: string; className?: string }) => {
-  const [loaded, setLoaded] = React.useState(false)
-  const [sourceIndex, setSourceIndex] = React.useState(0)
-
-  const handleError = () => {
-    const nextIndex = sourceIndex + 1
-    if (nextIndex < SPRITE_SOURCES.length) {
-      setSourceIndex(nextIndex)
-      setLoaded(false)
-    }
-  }
-
-  return (
-    <div className={`relative ${className}`}>
-      {!loaded && (
-        <div className="absolute inset-0 animate-pulse rounded-sm bg-slate-300 dark:bg-slate-600" />
-      )}
-      <img
-        src={spriteUrl(name, sourceIndex)}
-        alt={`${name} sprite`}
-        className={`${className} transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        onError={handleError}
-      />
-    </div>
-  )
-}
+const spriteUrl = (name: string) => `${SPRITE_BASE_URL}${toSpriteId(name)}.png`
 
 const outcomeColor = (outcome: string) => (outcome === 'Win' ? 'emerald' : 'rose')
 
@@ -422,7 +383,7 @@ function PokebenchHome() {
                 <div className="hidden md:block">
                   <Card className="p-0">
                     <div className="overflow-x-auto">
-                      <Table className="min-w-[1100px] w-full table-fixed">
+                      <Table className="min-w-[1000px] w-full table-fixed">
                         <TableHead>
                           <TableRow>
                             <TableHeaderCell className="w-[60px]">
@@ -494,9 +455,6 @@ function PokebenchHome() {
                                     </Text>
                                   </div>
                                 </Flex>
-                              </TableCell>
-                              <TableCell>
-                                <Text>{agent.provider}</Text>
                               </TableCell>
                               <TableCell>
                                 <Badge
@@ -617,7 +575,12 @@ function PokebenchHome() {
                             justifyContent="start"
                             className="gap-1"
                           >
-                            <PokemonSprite name={pokemon} className="h-4 w-4" />
+                            <img
+                              src={spriteUrl(pokemon)}
+                              alt={`${pokemon} sprite`}
+                              className="h-4 w-4"
+                              loading="lazy"
+                            />
                             <span>{pokemon}</span>
                           </Flex>
                         </Badge>
@@ -639,7 +602,12 @@ function PokebenchHome() {
                             justifyContent="start"
                             className="gap-1"
                           >
-                            <PokemonSprite name={pokemon} className="h-4 w-4" />
+                            <img
+                              src={spriteUrl(pokemon)}
+                              alt={`${pokemon} sprite`}
+                              className="h-4 w-4"
+                              loading="lazy"
+                            />
                             <span>{pokemon}</span>
                           </Flex>
                         </Badge>
@@ -650,7 +618,15 @@ function PokebenchHome() {
                       variant="secondary"
                       color="slate"
                       className="mt-4 w-full"
-                      onClick={() => (window.location.href = match.replayUrl)}
+                      onClick={() => {
+                        // Use dedicated replay viewer for real replays
+                        const battleId = 'battleId' in match ? (match as { battleId?: string }).battleId : undefined
+                        if (battleId) {
+                          navigate({ to: '/replays/$battleId', params: { battleId } })
+                        } else {
+                          window.location.href = match.replayUrl
+                        }
+                      }}
                     >
                       View replay
                     </Button>
@@ -705,7 +681,12 @@ function PokebenchHome() {
                                     justifyContent="start"
                                     className="gap-1"
                                   >
-                                    <PokemonSprite name={pokemon} className="h-4 w-4" />
+                                    <img
+                                      src={spriteUrl(pokemon)}
+                                      alt={`${pokemon} sprite`}
+                                      className="h-4 w-4"
+                                      loading="lazy"
+                                    />
                                     <span>{pokemon}</span>
                                   </Flex>
                                 </Badge>
@@ -726,7 +707,12 @@ function PokebenchHome() {
                                     justifyContent="start"
                                     className="gap-1"
                                   >
-                                    <PokemonSprite name={pokemon} className="h-4 w-4" />
+                                    <img
+                                      src={spriteUrl(pokemon)}
+                                      alt={`${pokemon} sprite`}
+                                      className="h-4 w-4"
+                                      loading="lazy"
+                                    />
                                     <span>{pokemon}</span>
                                   </Flex>
                                 </Badge>
@@ -747,9 +733,14 @@ function PokebenchHome() {
                               size="sm"
                               variant="secondary"
                               color="slate"
-                              onClick={() =>
-                                (window.location.href = match.replayUrl)
-                              }
+                              onClick={() => {
+                                const battleId = 'battleId' in match ? (match as { battleId?: string }).battleId : undefined
+                                if (battleId) {
+                                  navigate({ to: '/replays/$battleId', params: { battleId } })
+                                } else {
+                                  window.location.href = match.replayUrl
+                                }
+                              }}
                             >
                               View
                             </Button>
@@ -813,9 +804,14 @@ function PokebenchHome() {
               </Card>
               <Button
                 color="cyan"
-                onClick={() =>
-                  (window.location.href = replayPreview[0].replayUrl)
-                }
+                onClick={() => {
+                  const firstReplay = hasRealReplays ? realReplays[0] : null
+                  if (firstReplay) {
+                    navigate({ to: '/replays/$battleId', params: { battleId: firstReplay.battleId } })
+                  } else {
+                    window.location.href = replayPreview[0].replayUrl
+                  }
+                }}
               >
                 Open replay + trace
               </Button>
