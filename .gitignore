@@ -138,3 +138,4 @@ apps/web/.vite/
 apps/web/public/data/*
 apps/web/public/replays/*
 !apps/web/public/replays/sample-replay.html
+!apps/web/public/replays/sample-runs.png
