@@ -567,30 +567,31 @@ function PokebenchHome() {
                 </Flex>
                 
                 {/* Teams Display */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {/* Agent Team */}
-                  <div className="bg-gradient-to-br from-emerald-50/50 to-cyan-50/50 dark:from-emerald-950/20 dark:to-cyan-950/20 rounded-xl p-3 border border-emerald-200/50 dark:border-emerald-800/30">
+                  <div className="bg-gradient-to-br from-emerald-50/60 to-teal-50/40 dark:from-emerald-950/30 dark:to-teal-950/20 rounded-xl p-3 border border-emerald-200/60 dark:border-emerald-800/40">
                     <Flex justifyContent="between" alignItems="center" className="mb-2">
-                      <Text className="text-xs uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-400">
+                      <Text className="text-xs uppercase tracking-wider font-bold text-emerald-700 dark:text-emerald-400">
                         Agent Team
                       </Text>
-                      <Badge size="xs" color="emerald" className="!bg-emerald-100 !text-emerald-700 dark:!bg-emerald-900/50 dark:!text-emerald-300">
+                      <Badge size="xs" color="emerald" className="!bg-emerald-100/80 !text-emerald-700 dark:!bg-emerald-900/60 dark:!text-emerald-300 !ring-emerald-300/50">
                         {match.agentTeam.length} Pokémon
                       </Badge>
                     </Flex>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-3 gap-1.5">
                       {match.agentTeam.map((pokemon, idx) => (
                         <div 
                           key={`${match.id}-agent-${pokemon}-${idx}`}
-                          className="flex flex-col items-center gap-1 p-2 bg-white/80 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60 min-w-[72px] hover:shadow-md transition-shadow"
+                          className="flex flex-col items-center gap-0.5 p-1.5 bg-white/90 dark:bg-slate-800/70 rounded-lg border border-emerald-200/40 dark:border-emerald-700/40 hover:shadow-md hover:scale-105 transition-all cursor-default group"
+                          title={formatPokemonName(pokemon)}
                         >
                           <img
                             src={getPokemonSprite(pokemon)}
                             alt={`${pokemon} sprite`}
-                            className="h-12 w-12 sm:h-14 sm:w-14 object-contain drop-shadow-md"
+                            className="h-10 w-10 sm:h-12 sm:w-12 object-contain drop-shadow-sm group-hover:drop-shadow-md transition-all"
                             loading="lazy"
                           />
-                          <Text className="text-[10px] sm:text-xs font-medium text-center leading-tight truncate max-w-[64px]">
+                          <Text className="text-[9px] sm:text-[10px] font-medium text-center leading-tight truncate w-full max-w-[60px] text-slate-700 dark:text-slate-300">
                             {formatPokemonName(pokemon).split(' (')[0]}
                           </Text>
                         </div>
@@ -599,28 +600,29 @@ function PokebenchHome() {
                   </div>
                   
                   {/* Opponent Team */}
-                  <div className="bg-gradient-to-br from-rose-50/50 to-orange-50/50 dark:from-rose-950/20 dark:to-orange-950/20 rounded-xl p-3 border border-rose-200/50 dark:border-rose-800/30">
+                  <div className="bg-gradient-to-br from-rose-50/60 to-orange-50/40 dark:from-rose-950/30 dark:to-orange-950/20 rounded-xl p-3 border border-rose-200/60 dark:border-rose-800/40">
                     <Flex justifyContent="between" alignItems="center" className="mb-2">
-                      <Text className="text-xs uppercase tracking-wide font-semibold text-rose-700 dark:text-rose-400">
+                      <Text className="text-xs uppercase tracking-wider font-bold text-rose-700 dark:text-rose-400">
                         Opponent Team
                       </Text>
-                      <Badge size="xs" color="rose" className="!bg-rose-100 !text-rose-700 dark:!bg-rose-900/50 dark:!text-rose-300">
+                      <Badge size="xs" color="rose" className="!bg-rose-100/80 !text-rose-700 dark:!bg-rose-900/60 dark:!text-rose-300 !ring-rose-300/50">
                         {match.opponentTeam.length} Pokémon
                       </Badge>
                     </Flex>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-3 gap-1.5">
                       {match.opponentTeam.map((pokemon, idx) => (
                         <div 
                           key={`${match.id}-opp-${pokemon}-${idx}`}
-                          className="flex flex-col items-center gap-1 p-2 bg-white/80 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60 min-w-[72px] hover:shadow-md transition-shadow"
+                          className="flex flex-col items-center gap-0.5 p-1.5 bg-white/90 dark:bg-slate-800/70 rounded-lg border border-rose-200/40 dark:border-rose-700/40 hover:shadow-md hover:scale-105 transition-all cursor-default group"
+                          title={formatPokemonName(pokemon)}
                         >
                           <img
                             src={getPokemonSprite(pokemon)}
                             alt={`${pokemon} sprite`}
-                            className="h-12 w-12 sm:h-14 sm:w-14 object-contain drop-shadow-md"
+                            className="h-10 w-10 sm:h-12 sm:w-12 object-contain drop-shadow-sm group-hover:drop-shadow-md transition-all"
                             loading="lazy"
                           />
-                          <Text className="text-[10px] sm:text-xs font-medium text-center leading-tight truncate max-w-[64px]">
+                          <Text className="text-[9px] sm:text-[10px] font-medium text-center leading-tight truncate w-full max-w-[60px] text-slate-700 dark:text-slate-300">
                             {formatPokemonName(pokemon).split(' (')[0]}
                           </Text>
                         </div>
