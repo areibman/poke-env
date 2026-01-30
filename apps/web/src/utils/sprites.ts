@@ -6,11 +6,11 @@
 // Base URLs for Pokemon Showdown sprites
 const SPRITE_BASE = 'https://play.pokemonshowdown.com/sprites'
 
-// Pokemon sprite URLs - gen5 has the most complete coverage
-export const POKEMON_SPRITE_BASE = `${SPRITE_BASE}/gen5/`
-export const POKEMON_SPRITE_ANI = `${SPRITE_BASE}/ani/` // Animated sprites (gen 5+)
-export const POKEMON_SPRITE_ANI_BACK = `${SPRITE_BASE}/ani-back/`
-export const POKEMON_SPRITE_DEX = `${SPRITE_BASE}/dex/` // Higher quality dex sprites
+// Pokemon sprite URLs - using home sprites for best modern coverage
+export const POKEMON_SPRITE_HOME = `${SPRITE_BASE}/home/` // Pokemon HOME sprites (best for gen8-9)
+export const POKEMON_SPRITE_DEX = `${SPRITE_BASE}/dex/` // Dex sprites
+export const POKEMON_SPRITE_GEN5 = `${SPRITE_BASE}/gen5/` // Fallback for classic look
+export const POKEMON_SPRITE_ANI = `${SPRITE_BASE}/ani/` // Animated sprites
 
 // Type icons
 export const TYPE_ICON_BASE = `${SPRITE_BASE}/types/`
@@ -57,24 +57,43 @@ export const toSpriteId = (name: string): string => {
 }
 
 /**
- * Get Pokemon sprite URL (static PNG, gen5 style - most complete coverage)
+ * Get Pokemon sprite URL (HOME sprites have best coverage for all gens including gen8-9)
  */
 export const getPokemonSprite = (name: string): string => {
-  return `${POKEMON_SPRITE_BASE}${toSpriteId(name)}.png`
+  return `${POKEMON_SPRITE_HOME}${toSpriteId(name)}.png`
 }
 
 /**
- * Get Pokemon animated sprite URL (GIF, modern Pokemon)
+ * Get Pokemon dex sprite URL
+ */
+export const getPokemonDexSprite = (name: string): string => {
+  return `${POKEMON_SPRITE_DEX}${toSpriteId(name)}.png`
+}
+
+/**
+ * Get Pokemon gen5-style sprite URL (classic pixel art look)
+ */
+export const getPokemonGen5Sprite = (name: string): string => {
+  return `${POKEMON_SPRITE_GEN5}${toSpriteId(name)}.png`
+}
+
+/**
+ * Get Pokemon animated sprite URL (GIF)
  */
 export const getPokemonAnimatedSprite = (name: string): string => {
   return `${POKEMON_SPRITE_ANI}${toSpriteId(name)}.gif`
 }
 
 /**
- * Get Pokemon dex sprite URL (higher quality PNG)
+ * Get all possible sprite URLs for fallback chain
  */
-export const getPokemonDexSprite = (name: string): string => {
-  return `${POKEMON_SPRITE_DEX}${toSpriteId(name)}.png`
+export const getPokemonSpriteUrls = (name: string): string[] => {
+  const id = toSpriteId(name)
+  return [
+    `${POKEMON_SPRITE_HOME}${id}.png`,
+    `${POKEMON_SPRITE_DEX}${id}.png`,
+    `${POKEMON_SPRITE_GEN5}${id}.png`,
+  ]
 }
 
 /**

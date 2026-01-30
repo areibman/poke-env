@@ -37,7 +37,7 @@ import { SiteNavbar } from '@/components/SiteNavbar'
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect'
 import { SimplePokemonBadge, TypeBadge } from '@/components/PokemonTeamCard'
 import { getPokemonTypes, sampleTeams } from '../data/sample-teams'
-import { getPokemonSprite, getTypeIcon, getItemIcon } from '../utils/sprites'
+import { getPokemonSprite, getPokemonSpriteUrls, getTypeIcon, getItemIcon } from '../utils/sprites'
 import type { PokemonDetails } from '../data/sample-teams'
 
 export const Route = createFileRoute('/')({
@@ -111,74 +111,93 @@ const replayTracePreview = {
   ],
 }
 
+// Pokemon sprite component with fallback chain
+function PokemonSpriteWithFallback({ name, className }: { name: string; className?: string }) {
+  const urls = getPokemonSpriteUrls(name)
+  return (
+    <img
+      src={urls[0]}
+      alt={name}
+      className={`object-contain ${className || ''}`}
+      loading="lazy"
+      onError={(e) => {
+        const target = e.currentTarget
+        const currentSrc = target.src
+        // Try next URL in fallback chain
+        const currentIndex = urls.findIndex(url => currentSrc.includes(url.split('/sprites/')[1]?.split('/')[0] || ''))
+        if (currentIndex < urls.length - 1) {
+          target.src = urls[currentIndex + 1]
+        }
+      }}
+    />
+  )
+}
+
 // VGC-style Pokemon card component (like the reference image)
 function PokemonVGCCard({ pokemon }: { pokemon: PokemonDetails }) {
   return (
-    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-600 via-rose-700 to-rose-800 p-3 shadow-lg hover:shadow-xl transition-shadow">
-      {/* Header with name and types */}
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex-1 min-w-0">
-          {/* Pokemon name */}
-          <h3 className="text-xs font-bold text-white uppercase tracking-wide leading-tight line-clamp-1" title={pokemon.name.replace(/-/g, ' ')}>
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-600 via-rose-700 to-rose-800 shadow-lg hover:shadow-xl transition-shadow">
+      {/* Top section: Name + Types on left, Sprite on right */}
+      <div className="flex items-stretch">
+        {/* Left: Name and Types */}
+        <div className="flex-1 p-2.5 pb-1.5">
+          <h3 className="text-[11px] font-bold text-white uppercase tracking-wide leading-tight mb-1.5">
             {pokemon.name.replace(/-/g, ' ')}
           </h3>
-          {/* Type icons */}
-          <div className="flex items-center gap-0.5 mt-1">
+          <div className="flex items-center gap-1">
             {pokemon.types.map((type) => (
               <img
                 key={type}
                 src={getTypeIcon(type)}
                 alt={type}
-                className="h-[18px]"
+                className="h-[14px]"
                 loading="lazy"
               />
             ))}
           </div>
         </div>
-        {/* Pokemon sprite */}
-        <img
-          src={getPokemonSprite(pokemon.name)}
-          alt={pokemon.name}
-          className="h-16 w-16 object-contain drop-shadow-lg -mr-1 -mt-1"
-          loading="lazy"
-        />
+        {/* Right: Pokemon sprite */}
+        <div className="flex items-center justify-center pr-1.5 pt-1">
+          <PokemonSpriteWithFallback name={pokemon.name} className="h-14 w-14" />
+        </div>
       </div>
 
-      {/* Ability row */}
-      <div className="flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 mb-1 w-fit max-w-full">
-        <span className="text-[10px] font-semibold text-slate-700 truncate">{pokemon.ability}</span>
-      </div>
-
-      {/* Item row */}
-      <div className="flex items-center gap-1.5 rounded-full bg-white/95 px-2 py-0.5 mb-2 w-fit max-w-full">
-        <img
-          src={getItemIcon(pokemon.item)}
-          alt=""
-          className="h-4 w-4 object-contain flex-shrink-0"
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none'
-          }}
-        />
-        <span className="text-[10px] font-semibold text-slate-700 truncate">{pokemon.item}</span>
-      </div>
-
-      {/* Moves list */}
-      <div className="space-y-0.5">
-        {pokemon.moves.map((move) => (
-          <div
-            key={move.name}
-            className="flex items-center gap-1.5 rounded-full bg-white/95 px-2 py-0.5"
-          >
+      {/* Bottom section: Ability, Item, Moves */}
+      <div className="px-2.5 pb-2.5 space-y-1">
+        {/* Ability and Item row */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="inline-flex items-center rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-semibold text-slate-700">
+            {pokemon.ability}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-semibold text-slate-700">
             <img
-              src={getTypeIcon(move.type)}
+              src={getItemIcon(pokemon.item)}
               alt=""
-              className="h-3.5 w-3.5 object-contain flex-shrink-0"
+              className="h-3 w-3 object-contain"
               loading="lazy"
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
             />
-            <span className="text-[10px] font-medium text-slate-700 truncate">{move.name}</span>
-          </div>
-        ))}
+            {pokemon.item}
+          </span>
+        </div>
+
+        {/* Moves list */}
+        <div className="space-y-0.5">
+          {pokemon.moves.map((move) => (
+            <div
+              key={move.name}
+              className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5"
+            >
+              <img
+                src={getTypeIcon(move.type)}
+                alt=""
+                className="h-3 w-3 object-contain flex-shrink-0"
+                loading="lazy"
+              />
+              <span className="text-[9px] font-medium text-slate-700">{move.name}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
