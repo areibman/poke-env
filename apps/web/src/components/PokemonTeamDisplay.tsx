@@ -41,7 +41,45 @@ const FALLBACK_ITEM = 'https://play.pokemonshowdown.com/sprites/itemicons/pokeba
 
 const getSpriteUrl = (name: string) => `${SPRITE_BASE_URL}${toSpriteId(name)}.png`
 const getTypeIcon = (type: string) => `${TYPE_ICON_BASE_URL}${type}.png`
-const getItemIcon = (item: string) => `${ITEM_ICON_BASE_URL}${item.toLowerCase().replace(/\s+/g, '-')}.png`
+const getItemIcon = (item: string) => {
+  // Handle special cases for items that don't follow the standard naming convention
+  const specialCases: Record<string, string> = {
+    'Booster Energy': 'boosterenergy',
+    'Heavy-Duty Boots': 'heavydutyboots',
+    'Rocky Helmet': 'rockyhelmet',
+    'Weakness Policy': 'weaknesspolicy',
+    'Assault Vest': 'assaultvest',
+    'Focus Sash': 'focussash',
+    'Life Orb': 'lifeorb',
+    'Choice Scarf': 'choicescarf',
+    'Choice Specs': 'choicespecs',
+    'Choice Band': 'choiceband',
+    'Black Glasses': 'blackglasses',
+    'Loaded Dice': 'loadeddice',
+    'Wellspring Mask': 'wellspringmask',
+    'Toxic Orb': 'toxicorb',
+    'Flame Orb': 'flameorb',
+    'Rusted Shield': 'rustedshield',
+    'Rusted Sword': 'rustedsword',
+  }
+
+  // Fallback map for items that are missing from Showdown sprites
+  const fallbackMap: Record<string, string> = {
+    'Booster Energy': 'https://archives.bulbagarden.net/media/upload/6/6a/Dream_Booster_Energy_Sprite.png',
+  }
+
+  if (fallbackMap[item]) {
+    return fallbackMap[item]
+  }
+
+  if (specialCases[item]) {
+    // Try the special case format first
+    return `${ITEM_ICON_BASE_URL}${specialCases[item]}.png`
+  }
+  
+  // Default format: lowercase, replace spaces with hyphens
+  return `${ITEM_ICON_BASE_URL}${item.toLowerCase().replace(/\s+/g, '-')}.png`
+}
 
 interface PokemonCardProps {
   pokemon: RichPokemon
