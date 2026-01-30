@@ -219,7 +219,7 @@ const PokemonCard = ({ pokemon }: { pokemon: PokemonSet }) => {
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <Text className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-tight break-words">
               {pokemon.name}
             </Text>
             <div className="flex items-center gap-1">
@@ -242,18 +242,18 @@ const PokemonCard = ({ pokemon }: { pokemon: PokemonSet }) => {
               className="h-5 w-5 shrink-0 object-contain"
               loading="lazy"
             />
-            <Text className="text-xs text-slate-600 dark:text-slate-300">
+            <Text className="text-xs text-slate-600 dark:text-slate-300 leading-tight break-words">
               {pokemon.item}
             </Text>
           </div>
         </div>
       </div>
       {hasMoves ? (
-        <div className="grid grid-cols-2 gap-1">
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           {pokemon.moves.map((move) => (
             <span
               key={`${pokemon.name}-${move}`}
-              className="truncate rounded-md border border-slate-200/70 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200"
+              className="rounded-md border border-slate-200/70 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200 leading-tight break-words whitespace-normal"
               title={move}
             >
               {move}
@@ -281,7 +281,7 @@ const TeamRoster = ({ label, team }: { label: string; team: string[] }) => {
           {roster.length} pokemon
         </Badge>
       </div>
-      <div className="grid grid-flow-col auto-cols-[220px] gap-3 overflow-x-auto pb-2 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-flow-col auto-cols-[240px] gap-3 overflow-x-auto pb-2 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 xl:grid-cols-3">
         {roster.map((pokemon) => (
           <PokemonCard
             key={`${label}-${pokemon.name}`}
