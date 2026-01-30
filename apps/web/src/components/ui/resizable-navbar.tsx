@@ -3,7 +3,7 @@
 import React from "react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 
 interface NavbarProps {
   children: React.ReactNode;
