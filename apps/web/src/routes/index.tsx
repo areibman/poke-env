@@ -40,8 +40,12 @@ export const Route = createFileRoute('/')({
   component: PokebenchHome,
 })
 
-// Use gen5 sprites (static PNG) - they have ALL Pokemon including Gen9 DLC
-const SPRITE_BASE_URL = 'https://play.pokemonshowdown.com/sprites/gen5/'
+// Use PSD sprites (static PNG) - full coverage including Gen9 DLC
+const PSD_SPRITE_BASE_URLS = {
+  pokemon: 'https://play.pokemonshowdown.com/sprites/gen5/',
+  items: 'https://play.pokemonshowdown.com/sprites/itemicons/',
+  types: 'https://play.pokemonshowdown.com/sprites/types/',
+} as const
 const formatPercent = (value: number) => `${value.toFixed(0)}%`
 const formatElo = (value: number) => `${value.toLocaleString()}`
 const formatTermination = (value: string) =>
@@ -84,7 +88,17 @@ const toSpriteId = (name: string) => {
   return lower.replace(/[^a-z0-9]/g, '')
 }
 
-const spriteUrl = (name: string) => `${SPRITE_BASE_URL}${toSpriteId(name)}.png`
+const psdSpriteUrl = (
+  category: keyof typeof PSD_SPRITE_BASE_URLS,
+  id: string,
+) => `${PSD_SPRITE_BASE_URLS[category]}${id}.png`
+const toTypeId = (type: string) =>
+  `${type.charAt(0).toUpperCase()}${type.slice(1).toLowerCase()}`
+const toItemId = (item: string) => item.toLowerCase().replace(/[^a-z0-9]/g, '')
+const pokemonSpriteUrl = (name: string) =>
+  psdSpriteUrl('pokemon', toSpriteId(name))
+const itemSpriteUrl = (item: string) => psdSpriteUrl('items', toItemId(item))
+const typeIconUrl = (type: string) => psdSpriteUrl('types', toTypeId(type))
 
 const outcomeColor = (outcome: string) => (outcome === 'Win' ? 'emerald' : 'rose')
 
@@ -94,6 +108,237 @@ const terminationColor = (termination: string) => {
   if (termination === 'forfeit') return 'rose'
   return 'slate'
 }
+
+type PokemonProfile = {
+  types: string[]
+  item: string
+  moves: string[]
+}
+
+const POKEMON_PROFILES: Record<string, PokemonProfile> = {
+  Dragapult: {
+    types: ['Dragon', 'Ghost'],
+    item: 'Choice Specs',
+    moves: ['Shadow Ball', 'Draco Meteor', 'Flamethrower', 'U-turn'],
+  },
+  'Great Tusk': {
+    types: ['Ground', 'Fighting'],
+    item: 'Heavy-Duty Boots',
+    moves: ['Headlong Rush', 'Close Combat', 'Rapid Spin', 'Knock Off'],
+  },
+  Gholdengo: {
+    types: ['Steel', 'Ghost'],
+    item: 'Life Orb',
+    moves: ['Make It Rain', 'Shadow Ball', 'Nasty Plot', 'Recover'],
+  },
+  Kingambit: {
+    types: ['Dark', 'Steel'],
+    item: 'Black Glasses',
+    moves: ['Kowtow Cleave', 'Sucker Punch', 'Iron Head', 'Swords Dance'],
+  },
+  'Iron Valiant': {
+    types: ['Fairy', 'Fighting'],
+    item: 'Booster Energy',
+    moves: ['Moonblast', 'Close Combat', 'Knock Off', 'Protect'],
+  },
+  'Walking Wake': {
+    types: ['Water', 'Dragon'],
+    item: 'Choice Specs',
+    moves: ['Hydro Steam', 'Draco Meteor', 'Flamethrower', 'Flip Turn'],
+  },
+  'Ting-Lu': {
+    types: ['Dark', 'Ground'],
+    item: 'Leftovers',
+    moves: ['Ruination', 'Earthquake', 'Spikes', 'Whirlwind'],
+  },
+  Garganacl: {
+    types: ['Rock'],
+    item: 'Leftovers',
+    moves: ['Salt Cure', 'Recover', 'Protect', 'Body Press'],
+  },
+  Skeledirge: {
+    types: ['Fire', 'Ghost'],
+    item: 'Heavy-Duty Boots',
+    moves: ['Torch Song', 'Shadow Ball', 'Slack Off', 'Will-O-Wisp'],
+  },
+  'Roaring Moon': {
+    types: ['Dragon', 'Dark'],
+    item: 'Booster Energy',
+    moves: ['Dragon Dance', 'Crunch', 'Acrobatics', 'Roost'],
+  },
+  Baxcalibur: {
+    types: ['Dragon', 'Ice'],
+    item: 'Loaded Dice',
+    moves: ['Glaive Rush', 'Icicle Spear', 'Ice Shard', 'Dragon Dance'],
+  },
+  'Ogerpon-Wellspring': {
+    types: ['Water', 'Grass'],
+    item: 'Wellspring Mask',
+    moves: ['Ivy Cudgel', 'Horn Leech', 'Spiky Shield', 'Swords Dance'],
+  },
+  'Iron Bundle': {
+    types: ['Ice', 'Water'],
+    item: 'Booster Energy',
+    moves: ['Freeze-Dry', 'Hydro Pump', 'Icy Wind', 'Encore'],
+  },
+  'Raging Bolt': {
+    types: ['Electric', 'Dragon'],
+    item: 'Leftovers',
+    moves: ['Thunderclap', 'Draco Meteor', 'Calm Mind', 'Flamethrower'],
+  },
+  'Landorus-Therian': {
+    types: ['Ground', 'Flying'],
+    item: 'Rocky Helmet',
+    moves: ['Earthquake', 'U-turn', 'Stealth Rock', 'Knock Off'],
+  },
+  Zamazenta: {
+    types: ['Fighting'],
+    item: 'Leftovers',
+    moves: ['Body Press', 'Iron Defense', 'Crunch', 'Rest'],
+  },
+  Enamorus: {
+    types: ['Fairy', 'Flying'],
+    item: 'Choice Scarf',
+    moves: ['Moonblast', 'Earth Power', 'Mystical Fire', 'Healing Wish'],
+  },
+  Ursaluna: {
+    types: ['Normal', 'Ground'],
+    item: 'Flame Orb',
+    moves: ['Facade', 'Headlong Rush', 'Swords Dance', 'Protect'],
+  },
+  Primarina: {
+    types: ['Water', 'Fairy'],
+    item: 'Assault Vest',
+    moves: ['Moonblast', 'Hydro Pump', 'Ice Beam', 'Flip Turn'],
+  },
+  Hatterene: {
+    types: ['Psychic', 'Fairy'],
+    item: 'Covert Cloak',
+    moves: ['Psychic', 'Dazzling Gleam', 'Mystical Fire', 'Trick Room'],
+  },
+  'Samurott-Hisui': {
+    types: ['Water', 'Dark'],
+    item: 'Focus Sash',
+    moves: ['Ceaseless Edge', 'Aqua Cutter', 'Knock Off', 'Sucker Punch'],
+  },
+  Gliscor: {
+    types: ['Ground', 'Flying'],
+    item: 'Toxic Orb',
+    moves: ['Earthquake', 'Protect', 'Roost', 'Knock Off'],
+  },
+  Serperior: {
+    types: ['Grass'],
+    item: 'Leftovers',
+    moves: ['Leaf Storm', 'Glare', 'Substitute', 'Leech Seed'],
+  },
+  Heatran: {
+    types: ['Fire', 'Steel'],
+    item: 'Air Balloon',
+    moves: ['Magma Storm', 'Earth Power', 'Stealth Rock', 'Taunt'],
+  },
+}
+
+const getPokemonProfile = (pokemon: string) =>
+  POKEMON_PROFILES[pokemon] ?? { types: [], item: '', moves: [] }
+
+const PokemonCard = ({ pokemon }: { pokemon: string }) => {
+  const profile = getPokemonProfile(pokemon)
+  const moves = profile.moves.length > 0 ? profile.moves : ['Unknown move']
+
+  return (
+    <div className="min-w-[220px] flex-1 rounded-xl border border-slate-200/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/70 md:min-w-0">
+      <div className="flex items-start gap-3">
+        <div className="rounded-lg bg-slate-100/80 p-1.5 dark:bg-slate-900/70">
+          <img
+            src={pokemonSpriteUrl(pokemon)}
+            alt={`${pokemon} sprite`}
+            className="h-16 w-16 drop-shadow-sm sm:h-20 sm:w-20"
+            loading="lazy"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {pokemon}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1">
+            {profile.types.length > 0 ? (
+              profile.types.map((type) => (
+                <img
+                  key={`${pokemon}-${type}`}
+                  src={typeIconUrl(type)}
+                  alt={`${type} type`}
+                  title={type}
+                  className="h-4 w-4"
+                  loading="lazy"
+                />
+              ))
+            ) : (
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                Unknown type
+              </span>
+            )}
+          </div>
+          {profile.item ? (
+            <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+              <img
+                src={itemSpriteUrl(profile.item)}
+                alt={`${profile.item} item`}
+                className="h-4 w-4"
+                loading="lazy"
+              />
+              <span className="truncate">{profile.item}</span>
+            </div>
+          ) : (
+            <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+              Unknown item
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-1">
+        {moves.map((move, index) => (
+          <span
+            key={`${pokemon}-${move}-${index}`}
+            className="truncate rounded-md bg-slate-100/80 px-2 py-1 text-[10px] font-medium text-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+            title={move}
+          >
+            {move}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const TeamSection = ({
+  label,
+  team,
+  badgeColor,
+}: {
+  label: string
+  team: string[]
+  badgeColor: 'cyan' | 'rose' | 'slate'
+}) => (
+  <div className="flex flex-col gap-3">
+    <Flex
+      className="flex-wrap gap-3"
+      justifyContent="between"
+      alignItems="center"
+    >
+      <Text className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {label}
+      </Text>
+      <Badge size="xs" color={badgeColor} className={badgeTextClassName}>
+        {team.length} Pokemon
+      </Badge>
+    </Flex>
+    <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible lg:grid-cols-3">
+      {team.map((pokemon, index) => (
+        <PokemonCard key={`${label}-${pokemon}-${index}`} pokemon={pokemon} />
+      ))}
+    </div>
+  </div>
+)
 
 const replayTracePreview = {
   turn: 'Turn 12',
@@ -532,225 +777,76 @@ function PokebenchHome() {
           <Divider className="my-6" />
           <Grid numItemsLg={3} className="gap-6">
             <div className="lg:col-span-2">
-              <div className="flex flex-col gap-4 md:hidden">
+              <div className="grid gap-6 lg:grid-cols-2">
                 {sampleReplays.map((match) => (
-                  <Card key={match.id}>
-                    <Flex justifyContent="between" alignItems="center">
-                      <Badge
-                        size="sm"
-                        color={outcomeColor(match.outcome)}
-                        className={badgeTextClassName}
+                  <Card
+                    key={match.id}
+                    className="border border-slate-200/70 bg-white/90 dark:border-slate-800/70 dark:bg-slate-950/70"
+                  >
+                    <div className="flex flex-col gap-5">
+                      <Flex
+                        className="flex-wrap gap-3"
+                        justifyContent="between"
+                        alignItems="center"
                       >
-                        {match.outcome}
-                      </Badge>
-                      <Badge
-                        size="sm"
-                        color={terminationColor(match.termination)}
-                        className={badgeTextClassName}
-                      >
-                        {formatTermination(match.termination)}
-                      </Badge>
-                    </Flex>
-                    <Flex
-                      className="mt-2"
-                      justifyContent="between"
-                      alignItems="center"
-                    >
-                      <Text className="text-xs">Turn {match.turns}</Text>
-                      <Text className="text-xs">{match.timestamp}</Text>
-                    </Flex>
-                    <Text className="mt-3 text-xs uppercase tracking-wide">
-                      Agent team
-                    </Text>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {match.agentTeam.map((pokemon) => (
-                        <Badge
-                          key={`${match.id}-${pokemon}`}
-                          size="xs"
-                          color="slate"
-                          className={slateBadgeClassName}
-                        >
-                          <Flex
-                            alignItems="center"
-                            justifyContent="start"
-                            className="gap-1"
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge
+                            size="sm"
+                            color={outcomeColor(match.outcome)}
+                            className={badgeTextClassName}
                           >
-                            <img
-                              src={spriteUrl(pokemon)}
-                              alt={`${pokemon} sprite`}
-                              className="h-4 w-4"
-                              loading="lazy"
-                            />
-                            <span>{pokemon}</span>
-                          </Flex>
-                        </Badge>
-                      ))}
-                    </div>
-                    <Text className="mt-3 text-xs uppercase tracking-wide">
-                      Opponent team
-                    </Text>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {match.opponentTeam.map((pokemon) => (
-                        <Badge
-                          key={`${match.id}-${pokemon}`}
-                          size="xs"
-                          color="slate"
-                          className={slateBadgeClassName}
-                        >
-                          <Flex
-                            alignItems="center"
-                            justifyContent="start"
-                            className="gap-1"
+                            {match.outcome}
+                          </Badge>
+                          <Badge
+                            size="sm"
+                            color={terminationColor(match.termination)}
+                            className={badgeTextClassName}
                           >
-                            <img
-                              src={spriteUrl(pokemon)}
-                              alt={`${pokemon} sprite`}
-                              className="h-4 w-4"
-                              loading="lazy"
-                            />
-                            <span>{pokemon}</span>
-                          </Flex>
-                        </Badge>
-                      ))}
+                            {formatTermination(match.termination)}
+                          </Badge>
+                        </div>
+                        <Text className="text-xs text-slate-500 dark:text-slate-400">
+                          {match.turns} turns • {match.timestamp}
+                        </Text>
+                      </Flex>
+                      <TeamSection
+                        label="Agent team"
+                        team={match.agentTeam}
+                        badgeColor="cyan"
+                      />
+                      <TeamSection
+                        label="Opponent team"
+                        team={match.opponentTeam}
+                        badgeColor="rose"
+                      />
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          color="slate"
+                          onClick={() => {
+                            // Use dedicated replay viewer for real replays
+                            const battleId =
+                              'battleId' in match
+                                ? (match as { battleId?: string }).battleId
+                                : undefined
+                            if (battleId) {
+                              navigate({
+                                to: '/replays/$battleId',
+                                params: { battleId },
+                              })
+                            } else {
+                              window.location.href = match.replayUrl
+                            }
+                          }}
+                        >
+                          View replay
+                        </Button>
+                      </div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      color="slate"
-                      className="mt-4 w-full"
-                      onClick={() => {
-                        // Use dedicated replay viewer for real replays
-                        const battleId = 'battleId' in match ? (match as { battleId?: string }).battleId : undefined
-                        if (battleId) {
-                          navigate({ to: '/replays/$battleId', params: { battleId } })
-                        } else {
-                          window.location.href = match.replayUrl
-                        }
-                      }}
-                    >
-                      View replay
-                    </Button>
                   </Card>
                 ))}
               </div>
-              <Card className="hidden md:block">
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[620px] w-full table-fixed">
-                    <TableHead>
-                      <TableRow>
-                        <TableHeaderCell className="w-[70px]">
-                          Outcome
-                        </TableHeaderCell>
-                        <TableHeaderCell className="w-[180px]">
-                          Agent team
-                        </TableHeaderCell>
-                        <TableHeaderCell className="w-[180px]">
-                          Opponent team
-                        </TableHeaderCell>
-                        <TableHeaderCell className="w-[100px]">
-                          Termination
-                        </TableHeaderCell>
-                        <TableHeaderCell className="w-[90px]">
-                          Replay
-                        </TableHeaderCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {sampleReplays.map((match) => (
-                        <TableRow key={match.id}>
-                          <TableCell>
-                            <Badge
-                              size="sm"
-                              color={outcomeColor(match.outcome)}
-                              className={badgeTextClassName}
-                            >
-                              {match.outcome}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {match.agentTeam.map((pokemon) => (
-                                <Badge
-                                  key={`${match.id}-${pokemon}`}
-                                  size="xs"
-                                  color="slate"
-                                  className={slateBadgeClassName}
-                                >
-                                  <Flex
-                                    alignItems="center"
-                                    justifyContent="start"
-                                    className="gap-1"
-                                  >
-                                    <img
-                                      src={spriteUrl(pokemon)}
-                                      alt={`${pokemon} sprite`}
-                                      className="h-4 w-4"
-                                      loading="lazy"
-                                    />
-                                    <span>{pokemon}</span>
-                                  </Flex>
-                                </Badge>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {match.opponentTeam.map((pokemon) => (
-                                <Badge
-                                  key={`${match.id}-${pokemon}`}
-                                  size="xs"
-                                  color="slate"
-                                  className={slateBadgeClassName}
-                                >
-                                  <Flex
-                                    alignItems="center"
-                                    justifyContent="start"
-                                    className="gap-1"
-                                  >
-                                    <img
-                                      src={spriteUrl(pokemon)}
-                                      alt={`${pokemon} sprite`}
-                                      className="h-4 w-4"
-                                      loading="lazy"
-                                    />
-                                    <span>{pokemon}</span>
-                                  </Flex>
-                                </Badge>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              size="sm"
-                              color={terminationColor(match.termination)}
-                              className={badgeTextClassName}
-                            >
-                              {formatTermination(match.termination)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              color="slate"
-                              onClick={() => {
-                                const battleId = 'battleId' in match ? (match as { battleId?: string }).battleId : undefined
-                                if (battleId) {
-                                  navigate({ to: '/replays/$battleId', params: { battleId } })
-                                } else {
-                                  window.location.href = match.replayUrl
-                                }
-                              }}
-                            >
-                              View
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </Card>
             </div>
             <Card className="hidden lg:flex lg:flex-col lg:gap-4">
               <Flex justifyContent="between" alignItems="start" className="gap-4">
