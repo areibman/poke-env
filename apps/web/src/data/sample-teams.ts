@@ -1,0 +1,178 @@
+export interface PokemonDetails {
+  name: string
+  types: string[]
+  item: string
+  ability: string
+  moves: string[]
+}
+
+export const samplePokemonDetails: Record<string, PokemonDetails> = {
+  Dragapult: {
+    name: 'Dragapult',
+    types: ['Dragon', 'Ghost'],
+    item: 'Choice Specs',
+    ability: 'Infiltrator',
+    moves: ['Draco Meteor', 'Shadow Ball', 'U-turn', 'Flamethrower'],
+  },
+  'Great Tusk': {
+    name: 'Great Tusk',
+    types: ['Ground', 'Fighting'],
+    item: 'Booster Energy',
+    ability: 'Protosynthesis',
+    moves: ['Headlong Rush', 'Close Combat', 'Ice Spinner', 'Rapid Spin'],
+  },
+  Gholdengo: {
+    name: 'Gholdengo',
+    types: ['Steel', 'Ghost'],
+    item: 'Air Balloon',
+    ability: 'Good as Gold',
+    moves: ['Make It Rain', 'Shadow Ball', 'Nasty Plot', 'Recover'],
+  },
+  Kingambit: {
+    name: 'Kingambit',
+    types: ['Dark', 'Steel'],
+    item: 'Black Glasses',
+    ability: 'Supreme Overlord',
+    moves: ['Kowtow Cleave', 'Sucker Punch', 'Iron Head', 'Swords Dance'],
+  },
+  'Iron Valiant': {
+    name: 'Iron Valiant',
+    types: ['Fairy', 'Fighting'],
+    item: 'Booster Energy',
+    ability: 'Quark Drive',
+    moves: ['Moonblast', 'Close Combat', 'Thunderbolt', 'Encore'],
+  },
+  'Walking Wake': {
+    name: 'Walking Wake',
+    types: ['Water', 'Dragon'],
+    item: 'Choice Specs',
+    ability: 'Protosynthesis',
+    moves: ['Hydro Steam', 'Draco Meteor', 'Flamethrower', 'Flip Turn'],
+  },
+  'Ting-Lu': {
+    name: 'Ting-Lu',
+    types: ['Dark', 'Ground'],
+    item: 'Leftovers',
+    ability: 'Vessel of Ruin',
+    moves: ['Earthquake', 'Ruination', 'Spikes', 'Whirlwind'],
+  },
+  Garganacl: {
+    name: 'Garganacl',
+    types: ['Rock'],
+    item: 'Leftovers',
+    ability: 'Purifying Salt',
+    moves: ['Salt Cure', 'Recover', 'Iron Defense', 'Body Press'],
+  },
+  Skeledirge: {
+    name: 'Skeledirge',
+    types: ['Fire', 'Ghost'],
+    item: 'Heavy-Duty Boots',
+    ability: 'Unaware',
+    moves: ['Torch Song', 'Shadow Ball', 'Slack Off', 'Will-O-Wisp'],
+  },
+  'Roaring Moon': {
+    name: 'Roaring Moon',
+    types: ['Dragon', 'Dark'],
+    item: 'Booster Energy',
+    ability: 'Protosynthesis',
+    moves: ['Acrobatics', 'Knock Off', 'Dragon Dance', 'Earthquake'],
+  },
+  Baxcalibur: {
+    name: 'Baxcalibur',
+    types: ['Dragon', 'Ice'],
+    item: 'Loaded Dice',
+    ability: 'Thermal Exchange',
+    moves: ['Icicle Spear', 'Glaive Rush', 'Earthquake', 'Dragon Dance'],
+  },
+  'Ogerpon-Wellspring': {
+    name: 'Ogerpon-Wellspring',
+    types: ['Grass', 'Water'],
+    item: 'Wellspring Mask',
+    ability: 'Water Absorb',
+    moves: ['Ivy Cudgel', 'Horn Leech', 'Swords Dance', 'Play Rough'],
+  },
+  'Iron Bundle': {
+    name: 'Iron Bundle',
+    types: ['Ice', 'Water'],
+    item: 'Booster Energy',
+    ability: 'Quark Drive',
+    moves: ['Freeze-Dry', 'Hydro Pump', 'Ice Beam', 'Flip Turn'],
+  },
+  'Raging Bolt': {
+    name: 'Raging Bolt',
+    types: ['Electric', 'Dragon'],
+    item: 'Booster Energy',
+    ability: 'Protosynthesis',
+    moves: ['Thunderclap', 'Draco Meteor', 'Thunderbolt', 'Dragon Pulse'],
+  },
+  'Landorus-Therian': {
+    name: 'Landorus-Therian',
+    types: ['Ground', 'Flying'],
+    item: 'Rocky Helmet',
+    ability: 'Intimidate',
+    moves: ['Earthquake', 'U-turn', 'Stealth Rock', 'Stone Edge'],
+  },
+  Zamazenta: {
+    name: 'Zamazenta',
+    types: ['Fighting'],
+    item: 'Leftovers',
+    ability: 'Dauntless Shield',
+    moves: ['Body Press', 'Iron Defense', 'Heavy Slam', 'Crunch'],
+  },
+  Enamorus: {
+    name: 'Enamorus',
+    types: ['Fairy', 'Flying'],
+    item: 'Choice Scarf',
+    ability: 'Contrary',
+    moves: ['Moonblast', 'Superpower', 'Earth Power', 'Healing Wish'],
+  },
+  Ursaluna: {
+    name: 'Ursaluna',
+    types: ['Ground', 'Normal'],
+    item: 'Flame Orb',
+    ability: 'Guts',
+    moves: ['Facade', 'Headlong Rush', 'Fire Punch', 'Swords Dance'],
+  },
+  Primarina: {
+    name: 'Primarina',
+    types: ['Water', 'Fairy'],
+    item: 'Leftovers',
+    ability: 'Torrent',
+    moves: ['Moonblast', 'Surf', 'Psychic Noise', 'Calm Mind'],
+  },
+  Hatterene: {
+    name: 'Hatterene',
+    types: ['Psychic', 'Fairy'],
+    item: 'Leftovers',
+    ability: 'Magic Bounce',
+    moves: ['Psyshock', 'Draining Kiss', 'Calm Mind', 'Trick Room'],
+  },
+  'Samurott-Hisui': {
+    name: 'Samurott-Hisui',
+    types: ['Water', 'Dark'],
+    item: 'Focus Sash',
+    ability: 'Sharpness',
+    moves: ['Ceaseless Edge', 'Razor Shell', 'Aqua Jet', 'Knock Off'],
+  },
+  Gliscor: {
+    name: 'Gliscor',
+    types: ['Ground', 'Flying'],
+    item: 'Toxic Orb',
+    ability: 'Poison Heal',
+    moves: ['Earthquake', 'Toxic', 'Protect', 'Spikes'],
+  },
+  Serperior: {
+    name: 'Serperior',
+    types: ['Grass'],
+    item: 'Leftovers',
+    ability: 'Contrary',
+    moves: ['Leaf Storm', 'Glare', 'Substitute', 'Dragon Pulse'],
+  },
+  Heatran: {
+    name: 'Heatran',
+    types: ['Fire', 'Steel'],
+    item: 'Leftovers',
+    ability: 'Flash Fire',
+    moves: ['Magma Storm', 'Earth Power', 'Stealth Rock', 'Taunt'],
+  },
+}
