@@ -35,6 +35,10 @@ const toSpriteId = (name: string) => {
   return lower.replace(/[^a-z0-9]/g, '')
 }
 
+const FALLBACK_SPRITE = 'https://play.pokemonshowdown.com/sprites/gen5/substitute.png'
+const FALLBACK_TYPE = 'https://play.pokemonshowdown.com/sprites/types/Normal.png'
+const FALLBACK_ITEM = 'https://play.pokemonshowdown.com/sprites/itemicons/pokeball.png'
+
 const getSpriteUrl = (name: string) => `${SPRITE_BASE_URL}${toSpriteId(name)}.png`
 const getTypeIcon = (type: string) => `${TYPE_ICON_BASE_URL}${type}.png`
 const getItemIcon = (item: string) => `${ITEM_ICON_BASE_URL}${item.toLowerCase().replace(/\s+/g, '-')}.png`
@@ -44,29 +48,35 @@ interface PokemonCardProps {
 }
 
 export const PokemonCard = ({ pokemon }: PokemonCardProps) => {
+  const handleImageError = (fallback: string) => (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = fallback
+  }
+
   return (
     <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900/50">
-        <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide text-sm">
+      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-2 py-1.5 dark:border-slate-800 dark:bg-slate-900/50">
+        <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide text-xs truncate mr-2">
           {pokemon.name}
         </span>
-        <div className="flex gap-1">
+        <div className="flex gap-0.5 flex-shrink-0">
           {pokemon.types.map((type) => (
             <img
               key={type}
               src={getTypeIcon(type)}
               alt={type}
-              className="h-4 object-contain"
+              onError={handleImageError(FALLBACK_TYPE)}
+              className="h-3.5 w-auto object-contain"
             />
           ))}
           {pokemon.teraType && (
-             <div className="relative ml-1 flex items-center justify-center">
+             <div className="relative ml-0.5 flex items-center justify-center">
                 <div className="absolute inset-0 rounded-full bg-slate-200 opacity-20 dark:bg-slate-700"></div>
                 <img
                     src={getTypeIcon(pokemon.teraType)}
                     alt={`Tera ${pokemon.teraType}`}
-                    className="h-4 object-contain ring-1 ring-slate-300 dark:ring-slate-600 rounded-sm"
+                    onError={handleImageError(FALLBACK_TYPE)}
+                    className="h-3.5 w-auto object-contain ring-1 ring-slate-300 dark:ring-slate-600 rounded-sm"
                     title={`Tera Type: ${pokemon.teraType}`}
                 />
              </div>
@@ -75,14 +85,14 @@ export const PokemonCard = ({ pokemon }: PokemonCardProps) => {
       </div>
 
       {/* Body */}
-      <div className="p-3">
-        <div className="flex items-start gap-4">
+      <div className="p-2">
+        <div className="flex items-start gap-2">
           {/* Moves */}
-          <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+          <div className="flex-1 flex flex-col gap-1 min-w-0">
              {pokemon.moves.map((move) => (
-                <div key={move} className="flex items-center gap-2 rounded bg-slate-100 px-2 py-1 dark:bg-slate-900">
-                    <div className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-600 flex-shrink-0" />
-                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                <div key={move} className="flex items-center gap-1.5 rounded bg-slate-100 px-1.5 py-1 dark:bg-slate-900">
+                    <div className="h-1 w-1 rounded-full bg-slate-400 dark:bg-slate-600 flex-shrink-0" />
+                    <span className="text-[10px] sm:text-xs font-medium text-slate-700 dark:text-slate-300 truncate leading-tight">
                         {move}
                     </span>
                 </div>
@@ -90,13 +100,14 @@ export const PokemonCard = ({ pokemon }: PokemonCardProps) => {
           </div>
 
           {/* Sprite */}
-          <div className="flex flex-col items-center justify-center w-20 flex-shrink-0">
-             <div className="relative h-20 w-20 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center w-16 flex-shrink-0">
+             <div className="relative h-16 w-16 flex items-center justify-center">
                  <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-transparent rounded-full opacity-50 dark:from-slate-800" />
                  <img
                     src={getSpriteUrl(pokemon.name)}
                     alt={pokemon.name}
-                    className="relative h-20 w-20 object-contain image-pixelated"
+                    onError={handleImageError(FALLBACK_SPRITE)}
+                    className="relative h-16 w-16 object-contain image-pixelated"
                     style={{ imageRendering: 'pixelated' }}
                  />
              </div>
@@ -104,22 +115,27 @@ export const PokemonCard = ({ pokemon }: PokemonCardProps) => {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-            <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+        <div className="mt-2 flex flex-col gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-800">
+            <div className="flex items-center justify-between gap-2">
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold flex-shrink-0">
                     Ability
                 </span>
-                <span className="text-xs font-medium text-slate-900 dark:text-slate-100">
+                <span className="text-[10px] sm:text-xs font-medium text-slate-900 dark:text-slate-100 truncate text-right">
                     {pokemon.ability}
                 </span>
             </div>
-            <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+            <div className="flex items-center justify-between gap-2">
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold flex-shrink-0">
                     Item
                 </span>
-                <div className="flex items-center gap-1.5">
-                    <img src={getItemIcon(pokemon.item)} alt={pokemon.item} className="h-4 w-4 object-contain" />
-                    <span className="text-xs font-medium text-slate-900 dark:text-slate-100">
+                <div className="flex items-center gap-1 min-w-0 justify-end">
+                    <img 
+                        src={getItemIcon(pokemon.item)} 
+                        alt={pokemon.item} 
+                        onError={handleImageError(FALLBACK_ITEM)}
+                        className="h-3.5 w-3.5 object-contain flex-shrink-0" 
+                    />
+                    <span className="text-[10px] sm:text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
                         {pokemon.item}
                     </span>
                 </div>
