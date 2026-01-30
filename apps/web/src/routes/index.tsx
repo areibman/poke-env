@@ -26,10 +26,10 @@ import { useEffect, useMemo, useState } from 'react'
 
 import {
   agents,
-  leaderboardData,
   combinedReplayPreview,
-  realReplays,
   hasRealReplays,
+  leaderboardData,
+  realReplays,
 } from '../data/pokebench'
 
 import { BackgroundBeams } from '@/components/ui/background-beams'
@@ -60,7 +60,7 @@ const terminationColor = (termination: string) => {
 
 type PsdDexEntry = {
   name?: string
-  types?: string[]
+  types?: Array<string>
 }
 
 type PsdDex = Record<string, PsdDexEntry>
@@ -133,7 +133,7 @@ const TeamPanel = ({
   dex,
 }: {
   title: string
-  team: string[]
+  team: Array<string>
   dex: PsdDex | null
 }) => {
   return (

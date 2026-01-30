@@ -4,14 +4,14 @@
   "type": "module",
   "packageManager": "bun@1.2.18",
   "scripts": {
-    "dev": "bun scripts/codesign-esbuild.mjs && vite dev --port 3000",
+    "dev": "node scripts/codesign-esbuild.mjs && vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
-    "postinstall": "bun scripts/codesign-esbuild.mjs"
+    "postinstall": "node scripts/codesign-esbuild.mjs"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "^5.2.10",

@@ -12,8 +12,8 @@ export interface ReplayMatch {
   agentName: string
   agentModel: string
   opponentName: string
-  agentTeam: string[]
-  opponentTeam: string[]
+  agentTeam: Array<string>
+  opponentTeam: Array<string>
   replayUrl: string
   hasReplayHtml: boolean
   hasReasoning: boolean
@@ -21,47 +21,47 @@ export interface ReplayMatch {
 
 export interface ReplayManifest {
   generated: string
-  replays: ReplayMatch[]
-  byAgent: Record<string, ReplayMatch[]>
+  replays: Array<ReplayMatch>
+  byAgent: Partial<Record<string, Array<ReplayMatch>>>
 }
 
 export interface BattleState {
   turn: number
   weather: string | null
   terrain: string | null
-  player_side_conditions: string[]
-  opponent_side_conditions: string[]
+  player_side_conditions: Array<string>
+  opponent_side_conditions: Array<string>
   trapped: boolean
   can_tera: boolean
   active_pokemon: PokemonState
   opponent_active: OpponentPokemonState
-  team: PokemonState[]
-  opponent_team: OpponentPokemonState[]
+  team: Array<PokemonState>
+  opponent_team: Array<OpponentPokemonState>
 }
 
 export interface PokemonState {
   species: string
-  types: string[]
+  types: Array<string>
   hp_percent: number
   status: string | null
   boosts: Record<string, number>
   fainted: boolean
   ability: string
   item: string
-  moves: MoveState[]
+  moves: Array<MoveState>
 }
 
 export interface OpponentPokemonState {
   species: string
-  types: string[]
+  types: Array<string>
   hp_percent: number
   status: string | null
   boosts: Record<string, number>
   fainted: boolean
   known_ability: string | null
-  possible_abilities: string[]
+  possible_abilities: Array<string>
   known_item: string
-  revealed_moves: string[]
+  revealed_moves: Array<string>
 }
 
 export interface MoveState {
@@ -86,7 +86,7 @@ export interface PlayerLog {
   battle_id: string
   player_name: string
   model: string
-  turns: TurnTrace[]
+  turns: Array<TurnTrace>
   outcome: {
     winner: string | null
     end_timestamp: string
