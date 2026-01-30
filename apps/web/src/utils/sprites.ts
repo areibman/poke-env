@@ -51,8 +51,21 @@ export const getPokemonSpriteUrl = (name: string) =>
 export const getTypeSpriteUrl = (type: string) =>
   `https://play.pokemonshowdown.com/sprites/types/${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}.png`
 
-export const getItemSpriteUrl = (item: string) =>
-  `https://play.pokemonshowdown.com/sprites/itemicons/${item.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '')}.png`
+export const ITEM_SPRITE_OVERRIDES: Record<string, string> = {
+  'Assault Vest':
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/assault-vest.png',
+  'Weakness Policy':
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/weakness-policy.png',
+  'Booster Energy': 'https://www.serebii.net/itemdex/sprites/boosterenergy.png',
+  'Heavy-Duty Boots': 'https://www.serebii.net/itemdex/sprites/heavydutyboots.png',
+}
+
+export const getItemSpriteUrl = (item: string) => {
+  if (ITEM_SPRITE_OVERRIDES[item]) {
+    return ITEM_SPRITE_OVERRIDES[item]
+  }
+  return `https://play.pokemonshowdown.com/sprites/itemicons/${item.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '')}.png`
+}
 
 export const TYPE_COLORS: Record<string, string> = {
   Normal: '#A8A77A',
