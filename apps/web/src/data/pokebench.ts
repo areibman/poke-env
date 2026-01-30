@@ -1,5 +1,5 @@
-import type { ReplayManifest, ReplayMatch } from '../types/replays'
 import replayManifestData from './replays-manifest.json'
+import type { ReplayManifest, ReplayMatch } from '../types/replays'
 
 // Type assertion for the imported JSON
 const replayManifest = replayManifestData as ReplayManifest
@@ -411,12 +411,12 @@ export const hasRealReplays = replayManifest.replays.length > 0
 export const replayManifestGenerated = replayManifest.generated
 
 // Get real replays for a specific model, or empty array if none
-export const getRealReplaysForModel = (model: string): ReplayMatch[] => {
+export const getRealReplaysForModel = (model: string): Array<ReplayMatch> => {
   return replayManifest.byAgent[model] || []
 }
 
 // Get all unique models that have real replays
-export const getModelsWithReplays = (): string[] => {
+export const getModelsWithReplays = (): Array<string> => {
   return Object.keys(replayManifest.byAgent)
 }
 

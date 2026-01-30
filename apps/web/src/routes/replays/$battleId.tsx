@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import {
   Badge,
   Button,
@@ -11,14 +11,14 @@ import {
   Text,
   Title,
 } from '@tremor/react'
-import { useState, useEffect } from 'react'
-import { BackgroundBeams } from '@/components/ui/background-beams'
-import { SiteNavbar } from '@/components/SiteNavbar'
+import { useEffect, useState } from 'react'
 import {
   realReplays,
   replayToMatch,
 } from '../../data/pokebench'
 import type { ReplayMatch, TurnTrace } from '../../types/replays'
+import { BackgroundBeams } from '@/components/ui/background-beams'
+import { SiteNavbar } from '@/components/SiteNavbar'
 
 export const Route = createFileRoute('/replays/$battleId')({
   component: ReplayViewer,
@@ -97,7 +97,7 @@ interface BattleLogData {
   players: {
     [key: string]: {
       model: string
-      turns: TurnTrace[]
+      turns: Array<TurnTrace>
     }
   }
   outcome: {

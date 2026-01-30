@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Sync replays and battle logs from poke-env to the web app.
  * 
@@ -10,8 +10,8 @@
  * Run: bun scripts/sync-replays.ts
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, copyFileSync, writeFileSync, statSync } from 'fs'
-import { join, basename, dirname } from 'path'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 
 // Paths relative to this script's location
 const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname)
@@ -31,11 +31,11 @@ interface BattleLogTurn {
     turn: number
     weather: string | null
     terrain: string | null
-    player_side_conditions: string[]
-    opponent_side_conditions: string[]
+    player_side_conditions: Array<string>
+    opponent_side_conditions: Array<string>
     active_pokemon: {
       species: string
-      types: string[]
+      types: Array<string>
       hp_percent: number
       status: string | null
       ability: string
@@ -43,20 +43,20 @@ interface BattleLogTurn {
     }
     opponent_active: {
       species: string
-      types: string[]
+      types: Array<string>
       hp_percent: number
       status: string | null
     }
     team: Array<{
       species: string
-      types: string[]
+      types: Array<string>
       hp_percent: number
       status: string | null
       fainted: boolean
     }>
     opponent_team: Array<{
       species: string
-      types: string[]
+      types: Array<string>
       hp_percent: number
       fainted: boolean
     }>
@@ -69,7 +69,7 @@ interface BattleLog {
   players: {
     [playerName: string]: {
       model: string
-      turns: BattleLogTurn[]
+      turns: Array<BattleLogTurn>
     }
   }
   outcome: {
@@ -89,8 +89,8 @@ interface ReplayMatch {
   agentName: string
   agentModel: string
   opponentName: string
-  agentTeam: string[]
-  opponentTeam: string[]
+  agentTeam: Array<string>
+  opponentTeam: Array<string>
   replayUrl: string
   hasReplayHtml: boolean
   hasReasoning: boolean
@@ -98,8 +98,8 @@ interface ReplayMatch {
 
 interface ReplayManifest {
   generated: string
-  replays: ReplayMatch[]
-  byAgent: Record<string, ReplayMatch[]>
+  replays: Array<ReplayMatch>
+  byAgent: Record<string, Array<ReplayMatch>>
 }
 
 function ensureDir(dir: string) {
@@ -146,8 +146,8 @@ function syncReplayHtmlFiles(): Map<string, string> {
   return replayMap
 }
 
-function parseBattleLogs(replayMap: Map<string, string>): ReplayMatch[] {
-  const matches: ReplayMatch[] = []
+function parseBattleLogs(replayMap: Map<string, string>): Array<ReplayMatch> {
+  const matches: Array<ReplayMatch> = []
 
   if (!existsSync(BATTLE_LOGS_SOURCE)) {
     console.log(`Battle logs source not found: ${BATTLE_LOGS_SOURCE}`)
@@ -194,19 +194,18 @@ function parseBattleLogs(replayMap: Map<string, string>): ReplayMatch[] {
 
         // Get team info from the first turn's battle state
         const firstTurn = playerData.turns[0]
-        const agentTeam = firstTurn?.battle_state?.team?.map(p => capitalize(p.species)) || []
+        const agentTeam = firstTurn.battle_state.team.map((p) => capitalize(p.species))
         
         // Try to get opponent team from revealed Pokemon
-        const opponentTeam: string[] = []
+        const opponentTeam: Array<string> = []
         for (const turn of playerData.turns) {
-          const oppActive = turn.battle_state?.opponent_active
-          if (oppActive?.species) {
-            const species = capitalize(oppActive.species)
-            if (!opponentTeam.includes(species)) {
-              opponentTeam.push(species)
-            }
+          const oppActive = turn.battle_state.opponent_active
+          const activeSpecies = capitalize(oppActive.species)
+          if (!opponentTeam.includes(activeSpecies)) {
+            opponentTeam.push(activeSpecies)
           }
-          for (const opp of turn.battle_state?.opponent_team || []) {
+
+          for (const opp of turn.battle_state.opponent_team) {
             const species = capitalize(opp.species)
             if (!opponentTeam.includes(species)) {
               opponentTeam.push(species)
@@ -220,7 +219,7 @@ function parseBattleLogs(replayMap: Map<string, string>): ReplayMatch[] {
 
         // Determine termination type (would need more info from the battle log)
         // For now, assume normal unless we can detect otherwise
-        let termination: 'normal' | 'timeout' | 'forfeit' = 'normal'
+        const termination: 'normal' | 'timeout' | 'forfeit' = 'normal'
         
         const match: ReplayMatch = {
           id: `${battleLog.battle_id}-${playerName}`,
@@ -235,7 +234,7 @@ function parseBattleLogs(replayMap: Map<string, string>): ReplayMatch[] {
           agentTeam,
           opponentTeam,
           replayUrl: hasReplayHtml
-            ? `/replays/${encodeURIComponent(replayFilename!)}`
+            ? `/replays/${encodeURIComponent(replayFilename)}`
             : `/replays/sample-replay.html#${battleLog.battle_id}`,
           hasReplayHtml,
           hasReasoning: playerData.turns.length > 0,
@@ -255,8 +254,8 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 }
 
-function groupByAgent(matches: ReplayMatch[]): Record<string, ReplayMatch[]> {
-  const grouped: Record<string, ReplayMatch[]> = {}
+function groupByAgent(matches: Array<ReplayMatch>): Record<string, Array<ReplayMatch>> {
+  const grouped: Partial<Record<string, Array<ReplayMatch>>> = {}
   
   for (const match of matches) {
     // Group by model for cleaner organization
@@ -269,12 +268,12 @@ function groupByAgent(matches: ReplayMatch[]): Record<string, ReplayMatch[]> {
 
   // Sort each group by timestamp descending (newest first)
   for (const key of Object.keys(grouped)) {
-    grouped[key].sort((a, b) => 
+    grouped[key]?.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     )
   }
 
-  return grouped
+  return grouped as Record<string, Array<ReplayMatch>>
 }
 
 function main() {

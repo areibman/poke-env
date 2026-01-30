@@ -17,13 +17,13 @@ import {
 } from '@tremor/react'
 
 import {
+  hasRealReplays,
   methodologyTabs,
   pipelineStages,
   providerLogosRow,
+  realReplays,
   replayPreview,
   runtimeStack,
-  realReplays,
-  hasRealReplays,
 } from '../data/pokebench'
 
 import { SiteNavbar } from '@/components/SiteNavbar'
