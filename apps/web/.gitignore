@@ -15,3 +15,5 @@ public/data/*
 public/replays/*
 !public/replays/sample-replay.html
 screenshots/
+!public/screenshots/
+!public/screenshots/*.png
