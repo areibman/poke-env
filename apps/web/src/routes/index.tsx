@@ -114,22 +114,22 @@ const replayTracePreview = {
 // VGC-style Pokemon card component (like the reference image)
 function PokemonVGCCard({ pokemon }: { pokemon: PokemonDetails }) {
   return (
-    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-600 via-rose-700 to-rose-800 p-2.5 shadow-lg hover:shadow-xl transition-shadow">
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-600 via-rose-700 to-rose-800 p-3 shadow-lg hover:shadow-xl transition-shadow">
       {/* Header with name and types */}
-      <div className="flex items-start justify-between gap-1.5 mb-1.5">
+      <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           {/* Pokemon name */}
-          <h3 className="text-[11px] font-bold text-white uppercase tracking-wide truncate leading-tight">
+          <h3 className="text-xs font-bold text-white uppercase tracking-wide leading-tight line-clamp-1" title={pokemon.name.replace(/-/g, ' ')}>
             {pokemon.name.replace(/-/g, ' ')}
           </h3>
           {/* Type icons */}
-          <div className="flex items-center gap-0.5 mt-0.5">
+          <div className="flex items-center gap-0.5 mt-1">
             {pokemon.types.map((type) => (
               <img
                 key={type}
                 src={getTypeIcon(type)}
                 alt={type}
-                className="h-4"
+                className="h-[18px]"
                 loading="lazy"
               />
             ))}
@@ -139,30 +139,28 @@ function PokemonVGCCard({ pokemon }: { pokemon: PokemonDetails }) {
         <img
           src={getPokemonSprite(pokemon.name)}
           alt={pokemon.name}
-          className="h-14 w-14 object-contain drop-shadow-lg -mr-1 -mt-1"
+          className="h-16 w-16 object-contain drop-shadow-lg -mr-1 -mt-1"
           loading="lazy"
         />
       </div>
 
-      {/* Ability and Item row */}
-      <div className="flex flex-col gap-1 mb-1.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 rounded-full bg-white/90 px-1.5 py-0.5 max-w-[60%]">
-            <span className="text-[9px] font-semibold text-slate-700 truncate">{pokemon.ability}</span>
-          </div>
-          <div className="flex items-center gap-1 rounded-full bg-white/90 px-1.5 py-0.5 max-w-[38%]">
-            <img
-              src={getItemIcon(pokemon.item)}
-              alt=""
-              className="h-3.5 w-3.5 object-contain flex-shrink-0"
-              loading="lazy"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-              }}
-            />
-            <span className="text-[9px] font-semibold text-slate-700 truncate">{pokemon.item}</span>
-          </div>
-        </div>
+      {/* Ability row */}
+      <div className="flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 mb-1 w-fit max-w-full">
+        <span className="text-[10px] font-semibold text-slate-700 truncate">{pokemon.ability}</span>
+      </div>
+
+      {/* Item row */}
+      <div className="flex items-center gap-1.5 rounded-full bg-white/95 px-2 py-0.5 mb-2 w-fit max-w-full">
+        <img
+          src={getItemIcon(pokemon.item)}
+          alt=""
+          className="h-4 w-4 object-contain flex-shrink-0"
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+          }}
+        />
+        <span className="text-[10px] font-semibold text-slate-700 truncate">{pokemon.item}</span>
       </div>
 
       {/* Moves list */}
@@ -170,15 +168,15 @@ function PokemonVGCCard({ pokemon }: { pokemon: PokemonDetails }) {
         {pokemon.moves.map((move) => (
           <div
             key={move.name}
-            className="flex items-center gap-1 rounded-full bg-white/90 px-1.5 py-0.5"
+            className="flex items-center gap-1.5 rounded-full bg-white/95 px-2 py-0.5"
           >
             <img
               src={getTypeIcon(move.type)}
               alt=""
-              className="h-3 w-3 object-contain flex-shrink-0"
+              className="h-3.5 w-3.5 object-contain flex-shrink-0"
               loading="lazy"
             />
-            <span className="text-[9px] font-medium text-slate-700 truncate">{move.name}</span>
+            <span className="text-[10px] font-medium text-slate-700 truncate">{move.name}</span>
           </div>
         ))}
       </div>
