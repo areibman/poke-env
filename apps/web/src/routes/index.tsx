@@ -241,26 +241,60 @@ const POKEMON_PROFILES: Record<string, PokemonProfile> = {
 const getPokemonProfile = (pokemon: string) =>
   POKEMON_PROFILES[pokemon] ?? { types: [], item: '', moves: [] }
 
-const PokemonCard = ({ pokemon }: { pokemon: string }) => {
+const TEAM_TONE_STYLES = {
+  cyan: {
+    panel:
+      'border-cyan-200/70 bg-cyan-50/60 dark:border-cyan-500/30 dark:bg-cyan-950/30',
+    label: 'text-cyan-800 dark:text-cyan-200',
+    sprite: 'bg-cyan-100/70 dark:bg-cyan-900/40',
+    dot: 'bg-cyan-500',
+  },
+  rose: {
+    panel:
+      'border-rose-200/70 bg-rose-50/60 dark:border-rose-500/30 dark:bg-rose-950/30',
+    label: 'text-rose-800 dark:text-rose-200',
+    sprite: 'bg-rose-100/70 dark:bg-rose-900/40',
+    dot: 'bg-rose-500',
+  },
+  slate: {
+    panel:
+      'border-slate-200/70 bg-slate-50/70 dark:border-slate-700/60 dark:bg-slate-900/40',
+    label: 'text-slate-700 dark:text-slate-200',
+    sprite: 'bg-slate-100/80 dark:bg-slate-800/60',
+    dot: 'bg-slate-400',
+  },
+}
+
+const PokemonRow = ({
+  pokemon,
+  tone,
+}: {
+  pokemon: string
+  tone: keyof typeof TEAM_TONE_STYLES
+}) => {
   const profile = getPokemonProfile(pokemon)
   const moves = profile.moves.length > 0 ? profile.moves : ['Unknown move']
+  const compactMoves = moves.join(' • ')
+  const styles = TEAM_TONE_STYLES[tone]
 
   return (
-    <div className="min-w-[220px] flex-1 rounded-xl border border-slate-200/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/70 md:min-w-0">
-      <div className="flex items-start gap-3">
-        <div className="rounded-lg bg-slate-100/80 p-1.5 dark:bg-slate-900/70">
-          <img
-            src={pokemonSpriteUrl(pokemon)}
-            alt={`${pokemon} sprite`}
-            className="h-16 w-16 drop-shadow-sm sm:h-20 sm:w-20"
-            loading="lazy"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+    <div className="flex gap-4 rounded-2xl border border-slate-200/70 bg-white/95 px-3 py-3 shadow-sm dark:border-slate-800/60 dark:bg-slate-950/80">
+      <div
+        className={`flex h-16 w-16 items-center justify-center rounded-xl md:h-20 md:w-20 ${styles.sprite}`}
+      >
+        <img
+          src={pokemonSpriteUrl(pokemon)}
+          alt={`${pokemon} sprite`}
+          className="h-16 w-16 drop-shadow-sm md:h-20 md:w-20"
+          loading="lazy"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="truncate text-base font-semibold text-slate-900 dark:text-slate-100 md:text-lg">
             {pokemon}
           </p>
-          <div className="mt-1 flex flex-wrap items-center gap-1">
+          <div className="flex items-center gap-1">
             {profile.types.length > 0 ? (
               profile.types.map((type) => (
                 <img
@@ -268,7 +302,7 @@ const PokemonCard = ({ pokemon }: { pokemon: string }) => {
                   src={typeIconUrl(type)}
                   alt={`${type} type`}
                   title={type}
-                  className="h-4 w-4"
+                  className="h-5 w-5 md:h-6 md:w-6"
                   loading="lazy"
                 />
               ))
@@ -278,33 +312,36 @@ const PokemonCard = ({ pokemon }: { pokemon: string }) => {
               </span>
             )}
           </div>
-          {profile.item ? (
-            <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-              <img
-                src={itemSpriteUrl(profile.item)}
-                alt={`${profile.item} item`}
-                className="h-4 w-4"
-                loading="lazy"
-              />
-              <span className="truncate">{profile.item}</span>
-            </div>
-          ) : (
-            <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-              Unknown item
-            </div>
-          )}
         </div>
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-1">
-        {moves.map((move, index) => (
-          <span
-            key={`${pokemon}-${move}-${index}`}
-            className="truncate rounded-md bg-slate-100/80 px-2 py-1 text-[10px] font-medium text-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-            title={move}
-          >
-            {move}
-          </span>
-        ))}
+        {profile.item ? (
+          <div className="mt-1 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 md:text-sm">
+            <img
+              src={itemSpriteUrl(profile.item)}
+              alt={`${profile.item} item`}
+              className="h-5 w-5 md:h-6 md:w-6"
+              loading="lazy"
+            />
+            <span className="truncate">{profile.item}</span>
+          </div>
+        ) : (
+          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Unknown item
+          </div>
+        )}
+        <div className="mt-2 hidden grid-cols-2 gap-1 md:grid">
+          {moves.map((move, index) => (
+            <span
+              key={`${pokemon}-${move}-${index}`}
+              className="truncate rounded-md bg-slate-100/80 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+              title={move}
+            >
+              {move}
+            </span>
+          ))}
+        </div>
+        <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 md:hidden">
+          {compactMoves}
+        </div>
       </div>
     </div>
   )
@@ -313,32 +350,42 @@ const PokemonCard = ({ pokemon }: { pokemon: string }) => {
 const TeamSection = ({
   label,
   team,
-  badgeColor,
+  tone,
 }: {
   label: string
   team: string[]
-  badgeColor: 'cyan' | 'rose' | 'slate'
-}) => (
-  <div className="flex flex-col gap-3">
-    <Flex
-      className="flex-wrap gap-3"
-      justifyContent="between"
-      alignItems="center"
-    >
-      <Text className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {label}
-      </Text>
-      <Badge size="xs" color={badgeColor} className={badgeTextClassName}>
-        {team.length} Pokemon
-      </Badge>
-    </Flex>
-    <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible lg:grid-cols-3">
-      {team.map((pokemon, index) => (
-        <PokemonCard key={`${label}-${pokemon}-${index}`} pokemon={pokemon} />
-      ))}
+  tone: keyof typeof TEAM_TONE_STYLES
+}) => {
+  const styles = TEAM_TONE_STYLES[tone]
+  return (
+    <div className={`rounded-2xl border p-4 shadow-sm ${styles.panel}`}>
+      <Flex
+        className="flex-wrap gap-3"
+        justifyContent="between"
+        alignItems="center"
+      >
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-semibold uppercase ${styles.label}`}>
+            {label}
+          </span>
+          <span className={`h-2 w-2 rounded-full ${styles.dot}`} />
+        </div>
+        <Badge size="xs" color={tone} className={badgeTextClassName}>
+          {team.length} Pokemon
+        </Badge>
+      </Flex>
+      <div className="mt-3 flex flex-col gap-2">
+        {team.map((pokemon, index) => (
+          <PokemonRow
+            key={`${label}-${pokemon}-${index}`}
+            pokemon={pokemon}
+            tone={tone}
+          />
+        ))}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const replayTracePreview = {
   turn: 'Turn 12',
@@ -777,7 +824,7 @@ function PokebenchHome() {
           <Divider className="my-6" />
           <Grid numItemsLg={3} className="gap-6">
             <div className="lg:col-span-2">
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-6 2xl:grid-cols-2">
                 {sampleReplays.map((match) => (
                   <Card
                     key={match.id}
@@ -809,16 +856,18 @@ function PokebenchHome() {
                           {match.turns} turns • {match.timestamp}
                         </Text>
                       </Flex>
-                      <TeamSection
-                        label="Agent team"
-                        team={match.agentTeam}
-                        badgeColor="cyan"
-                      />
-                      <TeamSection
-                        label="Opponent team"
-                        team={match.opponentTeam}
-                        badgeColor="rose"
-                      />
+                      <div className="grid gap-4 lg:grid-cols-2">
+                        <TeamSection
+                          label="Agent team"
+                          team={match.agentTeam}
+                          tone="cyan"
+                        />
+                        <TeamSection
+                          label="Opponent team"
+                          team={match.opponentTeam}
+                          tone="rose"
+                        />
+                      </div>
                       <div className="flex justify-end">
                         <Button
                           size="sm"
