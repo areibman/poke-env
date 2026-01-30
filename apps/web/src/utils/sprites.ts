@@ -108,12 +108,13 @@ export const getTypeIcon = (type: string): string => {
 
 /**
  * Convert item name to item icon ID format
- * Items use lowercase with hyphens replaced by nothing
+ * Items use lowercase with spaces converted to hyphens
  */
 export const toItemId = (itemName: string): string => {
   return itemName
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '-')      // Replace spaces with hyphens
+    .replace(/[^a-z0-9-]/g, '') // Remove non-alphanumeric except hyphens
 }
 
 /**

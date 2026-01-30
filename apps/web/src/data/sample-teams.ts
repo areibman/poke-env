@@ -32,7 +32,7 @@ export const sampleTeams: Record<string, EnhancedTeam> = {
         name: 'Rillaboom',
         types: ['Grass'],
         ability: 'Grassy Surge',
-        item: 'Assault Vest',
+        item: 'Choice Band',
         moves: [
           { name: 'Wood Hammer', type: 'Grass' },
           { name: 'Grassy Glide', type: 'Grass' },
@@ -80,7 +80,7 @@ export const sampleTeams: Record<string, EnhancedTeam> = {
         name: 'Sneasler',
         types: ['Fighting', 'Poison'],
         ability: 'Unburden',
-        item: 'Grassy Seed',
+        item: 'Lum Berry',
         moves: [
           { name: 'Close Combat', type: 'Fighting' },
           { name: 'Acrobatics', type: 'Flying' },
