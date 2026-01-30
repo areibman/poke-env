@@ -52,7 +52,7 @@ export const getTypeSpriteUrl = (type: string) =>
   `https://play.pokemonshowdown.com/sprites/types/${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}.png`
 
 export const getItemSpriteUrl = (item: string) =>
-  `https://play.pokemonshowdown.com/sprites/itemicons/${item.toLowerCase().replace(/[^a-z0-9]/g, '')}.png`
+  `https://play.pokemonshowdown.com/sprites/itemicons/${item.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '')}.png`
 
 export const TYPE_COLORS: Record<string, string> = {
   Normal: '#A8A77A',
