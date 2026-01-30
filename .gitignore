@@ -136,3 +136,5 @@ apps/web/.vite/
 apps/web/public/data/*
 apps/web/public/replays/*
 !apps/web/public/replays/sample-replay.html
+screenshot*.png
+screenshot.js
