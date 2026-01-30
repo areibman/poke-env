@@ -36,7 +36,7 @@ import { BackgroundBeams } from '@/components/ui/background-beams'
 import { SiteNavbar } from '@/components/SiteNavbar'
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect'
 import { PokemonTeamInline, BattleMatchup } from '@/components/PokemonTeamDisplay'
-import { getPokemonSprite, formatPokemonName } from '@/lib/sprites'
+import { getPokemonSprite, formatPokemonName } from '@/utils/sprites'
 
 export const Route = createFileRoute('/')({
   component: PokebenchHome,

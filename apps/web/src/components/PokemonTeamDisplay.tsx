@@ -6,7 +6,7 @@
  */
 
 import { Badge, Card, Flex, Text } from '@tremor/react'
-import { getPokemonSprite, getTypeIcon, getItemIcon, formatPokemonName, TYPE_COLORS, type PokemonType } from '@/lib/sprites'
+import { getPokemonSprite, getTypeIcon, getItemIcon, formatPokemonName, TYPE_COLORS, type PokemonType } from '@/utils/sprites'
 
 // Pokemon data with optional detailed information
 export interface PokemonData {
